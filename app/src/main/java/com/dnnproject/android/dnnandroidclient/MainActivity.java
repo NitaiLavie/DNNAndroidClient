@@ -2,18 +2,29 @@ package com.dnnproject.android.dnnandroidclient;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
+import android.view.View;
 
 public class MainActivity extends AppCompatActivity {
+
+    private TextView textView;
+    private Button serviceButton;
+    private EditText ipEditText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-    // Example of a call to a native method
-    TextView tv = (TextView) findViewById(R.id.sample_text);
-    tv.setText(stringFromJNI());
+        textView = (TextView) findViewById(R.id.status_text);
+        serviceButton = (Button) findViewById(R.id.service_button);
+        ipEditText = (EditText) findViewById(R.id.ip_edit_box);
+    }
+
+    public void onClick(View view) {
+
     }
 
     /**
