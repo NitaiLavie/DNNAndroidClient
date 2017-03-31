@@ -5,5 +5,9 @@
     <string name="text_start">DNN client not running</string>
     <string name="text_stop">DNN client is running</string>
     <string name="ip_text">Enter DNN server IP</string>
+    <string name="dnn_service_name">DNNService</string>
+    <string name="notification_title">DNN client Service</string>
+    <string name="notification_message">Running a DNN client</string>
+    <string name="ticker_text">DNNService</string>
 
 </resources>

@@ -19,8 +19,11 @@
     <EditText
         android:id="@+id/ip_edit_box"
         android:layout_width="100pt"
-        android:layout_height="15pt"
-        android:layout_gravity="center" />
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:textAlignment="center"
+        android:inputType="number"
+        android:digits="0123456789."/>
 
 
     <Button
