@@ -59,12 +59,14 @@ public class MainActivity extends AppCompatActivity {
             //intent.putExtra(DownloadService.FILENAME, "david-david-hasselhoff-28106128-387-602.jpg");
             //intent.putExtra(DownloadService.URL, "http://images5.fanpop.com/image/photos/28100000/david-david-hasselhoff-28106128-387-602.jpg");
             startService(intent);
+            Toast.makeText(this,getText(R.string.toast_start),Toast.LENGTH_SHORT).show();
         } else {
             dnnServiceStarted = false;
             //add infos for the service which file to download and where to store
             //intent.putExtra(DownloadService.FILENAME, "david-david-hasselhoff-28106128-387-602.jpg");
             //intent.putExtra(DownloadService.URL, "http://images5.fanpop.com/image/photos/28100000/david-david-hasselhoff-28106128-387-602.jpg");
             stopService(intent);
+            Toast.makeText(this,getText(R.string.toast_stop),Toast.LENGTH_SHORT).show();
         }
         this.setLayout();
 

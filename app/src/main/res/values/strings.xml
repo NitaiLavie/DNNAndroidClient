@@ -9,5 +9,7 @@
     <string name="notification_title">DNN client Service</string>
     <string name="notification_message">Running a DNN client</string>
     <string name="ticker_text">DNNService</string>
+    <string name="toast_start">Started DNN client</string>
+    <string name="toast_stop">Stoped DNN client</string>
 
 </resources>

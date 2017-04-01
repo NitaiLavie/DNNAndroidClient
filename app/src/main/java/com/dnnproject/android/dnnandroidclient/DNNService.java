@@ -16,13 +16,19 @@ import android.support.v4.app.TaskStackBuilder;
 
 public class DNNService extends Service {
 
-    private final IBinder mBinder = new DNNServiceBinder();
-
     // for foreground service test:
     public static final int ONGOING_NOTIFICATION_ID = 666;
 
+    private final IBinder mBinder = new DNNServiceBinder();
+    private DNNServiceThread mainTread;
+
+    public DNNService(){
+        mainTread = new DNNServiceThread();
+    }
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+
         // setting up a notification for the forground service:
 
         Notification.Builder notificationBuilder = new Notification.Builder(this)
@@ -40,14 +46,31 @@ public class DNNService extends Service {
         );
 
         notificationBuilder.setContentIntent(pendingIntent);
-
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        // sending this service to the foreground
         startForeground(ONGOING_NOTIFICATION_ID, notificationBuilder.build());
 
         ////////
 
+        // Start main Service thread here:
+        //TODO add main service thread
+        mainTread.start();
+
+        ////////
+
         return Service.START_STICKY;
+    }
+
+    @Override
+
+    public void onDestroy(){
+        // removing this service from the foreground
+        stopForeground(true);
+
+        //mainTread.stop(); /* deprecated!!*/
+
     }
 
 
