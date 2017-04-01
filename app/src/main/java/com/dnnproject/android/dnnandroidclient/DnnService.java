@@ -14,20 +14,24 @@ import android.support.v4.app.TaskStackBuilder;
  * Created by nitai on 31/03/17.
  */
 
-public class DNNService extends Service {
+public class DnnService extends Service {
 
     // for foreground service test:
     public static final int ONGOING_NOTIFICATION_ID = 666;
+    public static final String IP = "ip";
 
     private final IBinder mBinder = new DNNServiceBinder();
-    private DNNServiceThread mainTread;
-
-    public DNNService(){
-        mainTread = new DNNServiceThread();
-    }
+    private DnnServiceThread mMainThread;
+    private String mDnnServerIP;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+
+        // getting extras from intent
+        mDnnServerIP = intent.getStringExtra(IP);
+
+        // creating the main service thread
+        mMainThread = new DnnServiceThread(mDnnServerIP);
 
         // setting up a notification for the forground service:
 
@@ -54,9 +58,8 @@ public class DNNService extends Service {
 
         ////////
 
-        // Start main Service thread here:
-        //TODO add main service thread
-        mainTread.start();
+        // Starting main service thread:
+        mMainThread.start();
 
         ////////
 
@@ -69,7 +72,7 @@ public class DNNService extends Service {
         // removing this service from the foreground
         stopForeground(true);
 
-        //mainTread.stop(); /* deprecated!!*/
+        //mMainThread.stop(); /* deprecated!!*/
 
     }
 
@@ -84,8 +87,8 @@ public class DNNService extends Service {
         boolean isRunning(){
             return false;
         }
-        DNNService getService() {
-            return DNNService.this;
+        DnnService getService() {
+            return DnnService.this;
         }
     }
 }

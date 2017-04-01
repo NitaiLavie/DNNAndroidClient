@@ -10,20 +10,22 @@
     tools:context="com.dnnproject.android.dnnandroidclient.MainActivity">
 
     <TextView
-        android:id="@+id/ip_text"
+        android:id="@+id/ip_title_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20pt"
         android:layout_gravity="center"
-        android:text="@string/ip_text" />
+        android:text="@string/enter_ip_text"
+        android:freezesText="true"/>
     <EditText
         android:id="@+id/ip_edit_box"
         android:layout_width="100pt"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:textAlignment="center"
-        android:inputType="number"
-        android:digits="0123456789."/>
+        android:inputType="number|numberDecimal"
+        android:digits="0123456789."
+        android:freezesText="true"/>
 
 
     <Button
@@ -45,7 +47,8 @@
             android:id="@+id/status_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/text_start" />
+            android:text="@string/text_start"
+            android:freezesText="true"/>
 
     </LinearLayout>
 

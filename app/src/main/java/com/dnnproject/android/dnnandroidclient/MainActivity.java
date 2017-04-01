@@ -1,7 +1,5 @@
 package com.dnnproject.android.dnnandroidclient;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -15,6 +13,7 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView serviceText;
     private Button serviceButton;
+    private TextView ipTitleText;
     private EditText ipEditText;
     private static boolean dnnServiceStarted = false;
 
@@ -46,25 +45,23 @@ public class MainActivity extends AppCompatActivity {
 
         serviceText = (TextView) findViewById(R.id.status_text);
         serviceButton = (Button) findViewById(R.id.service_button);
+        ipTitleText = (TextView) findViewById(R.id.ip_title_text);
         ipEditText = (EditText) findViewById(R.id.ip_edit_box);
 
         this.setLayout();
     }
 
     public void onClick(View view) {
-        Intent intent = new Intent(this, DNNService.class);
+        Intent intent = new Intent(this, DnnService.class);
         if(dnnServiceStarted == false) {
             dnnServiceStarted = true;
-            //add infos for the service which file to download and where to store
-            //intent.putExtra(DownloadService.FILENAME, "david-david-hasselhoff-28106128-387-602.jpg");
-            //intent.putExtra(DownloadService.URL, "http://images5.fanpop.com/image/photos/28100000/david-david-hasselhoff-28106128-387-602.jpg");
+            // send the ip address to the DnnService
+            intent.putExtra(DnnService.IP, ipEditText.getText().toString());
+
             startService(intent);
             Toast.makeText(this,getText(R.string.toast_start),Toast.LENGTH_SHORT).show();
         } else {
             dnnServiceStarted = false;
-            //add infos for the service which file to download and where to store
-            //intent.putExtra(DownloadService.FILENAME, "david-david-hasselhoff-28106128-387-602.jpg");
-            //intent.putExtra(DownloadService.URL, "http://images5.fanpop.com/image/photos/28100000/david-david-hasselhoff-28106128-387-602.jpg");
             stopService(intent);
             Toast.makeText(this,getText(R.string.toast_stop),Toast.LENGTH_SHORT).show();
         }
@@ -76,9 +73,13 @@ public class MainActivity extends AppCompatActivity {
         if(dnnServiceStarted == true){
             serviceButton.setText(getText(R.string.button_stop));
             serviceText.setText(getText(R.string.text_stop));
+            ipTitleText.setText(getText(R.string.current_ip_text));
+            ipEditText.setEnabled(false);
         } else {
             serviceButton.setText(getText(R.string.button_start));
             serviceText.setText(getText(R.string.text_start));
+            ipTitleText.setText(getText(R.string.enter_ip_text));
+            ipEditText.setEnabled(true);
         }
     }
 
