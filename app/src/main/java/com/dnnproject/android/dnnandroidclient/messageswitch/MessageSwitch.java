@@ -1,9 +1,10 @@
 package com.dnnproject.android.dnnandroidclient.messageswitch;
 
-import com.dnnproject.android.dnnandroidclient.tcpclient.MessageReceiver;
+import com.dnnproject.android.dnnandroidclient.tcpclient.DnnMessageTransceiver;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.locks.Lock;
 
 import dnn.message.DnnMessage;
 
@@ -13,31 +14,57 @@ import dnn.message.DnnMessage;
 
 
 
-public class MessageSwitch implements MessageReceiver, InOutMessageQueue {
+public class MessageSwitch implements DnnMessageTransceiver, InOutMessageQueue {
 
+    // implementing some shared resource safety:
+    private Lock mInputLock;
+    private Lock mOutputLock;
 
     // creating messages queues
-    private List<DnnMessage> mInputMessageQueue;
-    private List<DnnMessage> mOutputMessageQueue;
+    private Queue<DnnMessage> mInputMessageQueue;
+    private Queue<DnnMessage> mOutputMessageQueue;
 
-    public MessageSwitch() {
+    // a member messageSender
+    private MessageSender mMessageSender;
 
-        mInputMessageQueue = new ArrayList<>();
-        mOutputMessageQueue = new ArrayList<>();
+    public MessageSwitch(MessageSender messageSender) {
+
+        mMessageSender = messageSender;
+        mInputMessageQueue = new LinkedBlockingDeque<>();
+        mOutputMessageQueue = new LinkedBlockingDeque<>();
     }
 
-    @Override
+
     public void receiveMessage(DnnMessage message) {
+        mInputLock.lock();
+        mInputMessageQueue.add(message);
+        mInputLock.unlock();
 
     }
 
     @Override
     public void pushMessage(DnnMessage message) {
+        mOutputLock.lock();
+        mOutputMessageQueue.add(message);
+        mOutputLock.unlock();
 
     }
 
     @Override
     public void pullMessage(DnnMessage message) {
+        mInputLock.lock();
+        mInputMessageQueue.remove();
+        mInputLock.unlock();
 
+    }
+
+    @Override
+    public void sendMessage(DnnMessage message) {
+
+    }
+
+    @Override
+    public DnnMessage getMessage() {
+        return null;
     }
 }

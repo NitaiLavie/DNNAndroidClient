@@ -6,6 +6,7 @@ import dnn.message.DnnMessage;
  * Created by nitai on 01/04/17.
  */
 
-public interface MessageReceiver {
-    public void receiveMessage(DnnMessage message);
+public interface DnnMessageTransceiver {
+    public void sendMessage(DnnMessage message);
+    public DnnMessage getMessage();
 }

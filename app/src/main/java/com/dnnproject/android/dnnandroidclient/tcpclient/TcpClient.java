@@ -1,5 +1,6 @@
 package com.dnnproject.android.dnnandroidclient.tcpclient;
 
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.dnnproject.android.dnnandroidclient.messageswitch.MessageSender;
@@ -11,20 +12,25 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import dnn.message.DnnMessage;
 import dnn.message.DnnTestMessage;
 
 
-public class TcpClient extends Thread implements MessageSender{
+public class TcpClient implements DnnMessageTransceiver{
 
     // server default access port
     public static final int SERVER_PORT = 2828;
 
     // server ip
     public final String mServerIP;
-    // sends message received notifications
-    private OnMessageReceived mMessageListener = null;
     // while this is true, the client will continue running
     private boolean mRun = false;
 
@@ -35,60 +41,121 @@ public class TcpClient extends Thread implements MessageSender{
     private ObjectInputStream mInputStream;
     private ObjectOutputStream mOutputStream;
 
+    // implementing some shared resource safety:
+    private final Lock mInputLock = new ReentrantLock(true);
+    private final Lock mOutputLock = new ReentrantLock(true);
+    private final Semaphore mInputSemaphore = new Semaphore(0, true);
+    private final Semaphore mOutputSemaphore = new Semaphore(0, true);
+
+    // creating messages queues
+    private final Queue<DnnMessage> mInputMessageQueue = new LinkedBlockingDeque<>();
+    private final Queue<DnnMessage> mOutputMessageQueue = new LinkedBlockingDeque<>();
+
+    // creating the input and output runables
+    private final Thread mInputListener = new Thread() {
+        /** this Runnable is for reading DnnMessage objects from the input stream
+         * If the object is not a DnnMessage and exeption should be thrown
+         */
+        @Override
+        public void run() {
+            while(mRun == true){
+                try {
+
+                    Object message = mInputStream.readObject();
+                    if (!(message instanceof DnnMessage)) {
+                        // TODO: create this kind of exception!
+                        throw new NotDnnMessageException("TcpClient: the received message is not a DnnMessage");
+                    } else {
+                        mInputLock.lock();
+                            mInputMessageQueue.add((DnnMessage) message);
+                        mInputLock.unlock();
+                        mInputSemaphore.release();
+                    }
+
+                } catch (NotDnnMessageException e) {
+                    //Todo: do something usefull here
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    };
+
+    private final Thread mOutputListener = new Thread() {
+        /** this Runnable is for writing DnnMessage objects to the output stream
+         * it waits for output messages on the output queue and sends them
+         */
+        @Override
+        public void run() {
+            while(mRun == true){
+
+                try {
+                    mOutputSemaphore.acquire();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                mOutputLock.lock();
+                    DnnMessage message = mOutputMessageQueue.remove();
+                mOutputLock.unlock();
+
+                try {
+                    mOutputStream.writeObject(message);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            }
+
+        }
+    };
+
     /**
      * Constructor of the class. OnMessagedReceived listens for the messages received from server
      */
-    public TcpClient(String serverIP, OnMessageReceived listener) {
+    public TcpClient(String serverIP) {
         mServerIP = serverIP;
-        mMessageListener = listener;
     }
 
     @Override
-    public void run() {
+    public void sendMessage(DnnMessage message){
+        mOutputLock.lock();
+            mOutputMessageQueue.add(message);
+        mOutputLock.unlock();
+        mOutputSemaphore.release();
+    }
+
+    @Override
+    public DnnMessage getMessage(){
+        try {
+            mInputSemaphore.acquire();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        mInputLock.lock();
+            DnnMessage message = mInputMessageQueue.remove();
+        mInputLock.unlock();
+
+        return message;
+    }
+
+    public void start() {
 
         mRun = true;
-
         try {
             //here you must put your computer's IP address.
             InetAddress serverAddr = InetAddress.getByName(mServerIP);
-
             //create a socket to make the connection with the server
-            Socket socket = new Socket(serverAddr, SERVER_PORT);
-
+            mSocket = new Socket(serverAddr, SERVER_PORT);
             // initiate output and input streams
-            mInputStream = new ObjectInputStream(socket.getInputStream());
-            mOutputStream = new ObjectOutputStream(socket.getOutputStream());
+            mInputStream = new ObjectInputStream(mSocket.getInputStream());
+            mOutputStream = new ObjectOutputStream(mSocket.getOutputStream());
 
-            try {
-
-                // send login name
-                //sendMessage(null);
-
-                //in this while the client listens for the messages sent by the server
-                while (mRun) {
-
-                    // TEST with server
-                    mOutputStream.writeObject(new DnnTestMessage("GoGo","llll"));
-                    Thread.sleep(10000);
-                    ///
-
-//                    mServerMessage = mBufferIn.readLine();
-//
-//                    if (mServerMessage != null && mMessageListener != null) {
-//                        //call the method messageReceived from MyActivity class
-//                        mMessageListener.messageReceived(mServerMessage);
-//                    }
-
-                }
-            } catch (Exception e) {
-
-                Log.e("TCP", "S: Error", e);
-
-            } finally {
-                //the socket must be closed. It is not possible to reconnect to this socket
-                // after it is closed, which means a new socket instance has to be created.
-                socket.close();
-            }
+            // starting input and output listeners threads
+            mInputListener.start();
+            mOutputListener.start();
 
         } catch (Exception e) {
 
@@ -101,7 +168,7 @@ public class TcpClient extends Thread implements MessageSender{
     /**
      * Close the connection and release the members
      */
-    public void stopClient() throws IOException {
+    public void stop() throws IOException {
 
         // send mesage that we are closing the connection
         //sendMessage(null/* stop connection message */);
@@ -115,24 +182,11 @@ public class TcpClient extends Thread implements MessageSender{
         mSocket.close();
     }
 
-    /**
-     * Sends the message entered by client to the server
-     *
-     * @param message DNNMessage object
-     * @throws IOException
-     */
-    @Override
-    public void sendMessage(DnnMessage message) throws IOException {
-        if(mOutputStream != null) {
-            mOutputStream.writeObject(message);
-        } else {
-            throw new IOException("TCP client: No TCP connection available");
-        }
-    }
-
-    //Declare the interface. The method messageReceived(String message) will must be implemented in the MyActivity
-    //class at on asynckTask doInBackground
-    public interface OnMessageReceived {
-        public void messageReceived(String message);
+    // declaring NotDnnMessageException for TcpClient's use:
+    class NotDnnMessageException extends Exception{
+        public NotDnnMessageException() { super(); }
+        public NotDnnMessageException(String message) { super(message); }
+        public NotDnnMessageException(String message, Throwable cause) { super(message, cause); }
+        public NotDnnMessageException(Throwable cause) { super(cause); }
     }
 }
