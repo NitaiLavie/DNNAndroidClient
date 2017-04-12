@@ -6,7 +6,7 @@ import java.util.Queue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.locks.Lock;
 
-import dnn.message.DnnMessage;
+import dnn.dnnMessage.DnnMessage;
 
 /**
  * Created by nitai on 01/04/17.

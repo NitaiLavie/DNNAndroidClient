@@ -1,27 +1,19 @@
 package com.dnnproject.android.dnnandroidclient.tcpclient;
 
-import android.support.annotation.NonNull;
 import android.util.Log;
-
-import com.dnnproject.android.dnnandroidclient.messageswitch.MessageSender;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import dnn.message.DnnMessage;
-import dnn.message.DnnTestMessage;
+import dnnMessage.DnnMessage;
 
 
 public class TcpClient implements DnnMessageTransceiver{

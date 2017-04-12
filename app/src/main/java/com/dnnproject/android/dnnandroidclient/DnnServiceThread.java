@@ -2,9 +2,7 @@ package com.dnnproject.android.dnnandroidclient;
 
 import com.dnnproject.android.dnnandroidclient.tcpclient.TcpClient;
 
-import java.io.IOException;
-
-import dnn.message.DnnTestMessage;
+import dnn.dnnMessage.DnnTestMessage;
 
 /**
  * Created by nitai on 01/04/17.

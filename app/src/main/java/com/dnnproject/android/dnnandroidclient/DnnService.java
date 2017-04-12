@@ -36,9 +36,9 @@ public class DnnService extends Service {
         // setting up a notification for the forground service:
 
         Notification.Builder notificationBuilder = new Notification.Builder(this)
+                .setSmallIcon(R.mipmap.hamster_cogwheel)
                 .setContentTitle(getText(R.string.notification_title))
                 .setContentText(getText(R.string.notification_message))
-                .setSmallIcon(R.mipmap.ic_launcher_round)
                 .setTicker(getText(R.string.ticker_text));
 
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);

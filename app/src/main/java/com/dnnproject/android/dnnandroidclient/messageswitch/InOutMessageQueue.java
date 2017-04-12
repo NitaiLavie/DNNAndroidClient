@@ -1,6 +1,6 @@
 package com.dnnproject.android.dnnandroidclient.messageswitch;
 
-import dnn.message.DnnMessage;
+import dnn.dnnMessage.DnnMessage;
 
 /**
  * Created by nitai on 01/04/17.
