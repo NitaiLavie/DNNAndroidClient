@@ -7,6 +7,10 @@ import dnnUtil.dnnMessage.DnnMessage;
  */
 
 public interface DnnMessageTransceiver {
-    public void sendMessage(DnnMessage message);
-    public DnnMessage getMessage();
+    /**
+     * these methods are potentially blocking and therfore should be run from within a thread
+     * that takes this into account
+     */
+    public void sendMessage(DnnMessage message) throws InterruptedException;
+    public DnnMessage getMessage() throws InterruptedException;
 }

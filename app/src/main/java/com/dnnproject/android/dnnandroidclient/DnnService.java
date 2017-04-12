@@ -71,6 +71,7 @@ public class DnnService extends Service {
     public void onDestroy(){
         // removing this service from the foreground
         stopForeground(true);
+        mMainThread.interrupt();
 
         //mMainThread.stop(); /* deprecated!!*/
 
