@@ -13,7 +13,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import dnnMessage.DnnMessage;
+import dnnUtil.dnnMessage.DnnMessage;
 
 
 public class TcpClient implements DnnMessageTransceiver{

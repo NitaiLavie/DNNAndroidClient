@@ -1,6 +1,6 @@
 package com.dnnproject.android.dnnandroidclient.tcpclient;
 
-import dnn.dnnMessage.DnnMessage;
+import dnnUtil.dnnMessage.DnnMessage;
 
 /**
  * Created by nitai on 01/04/17.

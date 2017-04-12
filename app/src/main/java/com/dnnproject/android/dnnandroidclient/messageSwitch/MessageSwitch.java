@@ -1,4 +1,4 @@
-package com.dnnproject.android.dnnandroidclient.messageswitch;
+package com.dnnproject.android.dnnandroidclient.messageSwitch;
 
 import com.dnnproject.android.dnnandroidclient.tcpclient.DnnMessageTransceiver;
 
@@ -6,7 +6,7 @@ import java.util.Queue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.locks.Lock;
 
-import dnn.dnnMessage.DnnMessage;
+import dnnUtil.dnnMessage.DnnMessage;
 
 /**
  * Created by nitai on 01/04/17.
