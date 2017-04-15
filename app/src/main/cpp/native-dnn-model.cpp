@@ -22,7 +22,7 @@ static const char *kTAG = "native_dnn_model";
 #define LOGE(...) \
   ((void)__android_log_print(ANDROID_LOG_ERROR, kTAG, __VA_ARGS__))
 
-//<editor-fold desc="formatin std::string and jstring">
+//<editor-fold desc="formatin std::string and jbyteArray">
 //==================================================================================
 /**
  * formating strings to jbyteArray that we can pass them to Java
@@ -35,10 +35,10 @@ jbyteArray string2jbyteArray(JNIEnv * env, const std::string &nativeString) {
 }
 
 std::string jbyteArray2string (JNIEnv * env, const jbyteArray &byteArray) {
-    int len = env->GetArrayLength(byteArray);
+    int len = (int) env->GetArrayLength(byteArray);
     unsigned char* buf = new unsigned char[len];
-    env->GetByteArrayRegion (byteArray, 0, len, reinterpret_cast<jbyte*>(buf));
-    std::string* pStr =  new std::string(buf,len);
+    env->GetByteArrayRegion(byteArray, 0, len, reinterpret_cast<jbyte*>(buf));
+    std::string* pStr =  new std::string((char*) buf,len);
     return *pStr;
 }
 //==================================================================================
@@ -86,8 +86,16 @@ void from_binary_string(const BinaryString<NetType>& bs, network<NetType>& nn) {
 //==================================================================================
 //</editor-fold>
 
-// processing callback to java DnnModel class
+// typedefs:
+
+typedef sequential NET_TYPE;
+
+typedef enum{
+    MNIST, CIFAR10
+} training_set;
+
 typedef struct _ModelContext {
+    // processing callback to java DnnModel class
 	JavaVM *javaVM;
 	jclass dnnModelClass;
 	jobject dnnModelObject;
@@ -98,7 +106,16 @@ typedef struct _ModelContext {
 
 // Global variables:
 ModelContext MODEL_CONTEXT;
-network<sequential> NN;
+training_set TRAINING_SET = MNIST;
+network<NET_TYPE> NN;
+std::vector<vec_t> *TRAIN_DATA;
+std::vector<label_t> *TRAIN_LABELS;
+std::vector<vec_t> *TEST_DATA;
+std::vector<label_t> *TEST_LABELS;
+std::string MNIST_TRAINING_DATA_FILE_NAME = "";
+std::string MNIST_TRAINING_LABELS_FILE_NAME = "";
+std::string MNIST_TEST_DATA_FILE_NAME = "";
+std::string MNIST_TEST_LABELS_FILE_NAME = "";
 
 /*
  * processing one time initialization:
@@ -119,7 +136,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
 	memset(&MODEL_CONTEXT, 0, sizeof(MODEL_CONTEXT));
 
     //Todo: maybe this is not needed
-    memset(&NN, 0, sizeof(network<sequential>));
+    memset(&NN, 0, sizeof(network<NET_TYPE>));
 
 	MODEL_CONTEXT.javaVM = vm;
 
@@ -145,7 +162,7 @@ JNIEXPORT jbyteArray JNICALL
     NN << convolutional_layer<relu>(32,32,23,23,1,100)
        << fully_connected_layer<softmax>(100,10);
 
-    BinaryString<sequential> binaryString = to_binary_string(NN);
+    BinaryString<NET_TYPE> binaryString = to_binary_string(NN);
     return string2jbyteArray(env, binaryString.str);
 }
 
@@ -159,7 +176,7 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_dnnUtil_dnnModel_DnnModel_jniLoadModel(JNIEnv *env, jobject instance, jbyteArray binaryData){
 
-    BinaryString<sequential> bs;
+    BinaryString<NET_TYPE> bs;
     bs.str = jbyteArray2string(env, binaryData);
 
     from_binary_string(bs, NN);
@@ -169,4 +186,28 @@ extern "C"
 JNIEXPORT jbyteArray JNICALL
 Java_dnnUtil_dnnModel_DnnModel_jniTrainModel(JNIEnv *env, jobject instance){
     //Todo: add content
+}
+
+JNIEXPORT void JNICALL
+Java_dnnUtil_dnnModel_DnnModel_jniLoadTrainingData(JNIEnv *env, jobject instance) {
+    TRAIN_DATA = new std::vector<vec_t>();
+    TRAIN_LABELS = new std::vector<label_t>();
+    TEST_DATA = new std::vector<vec_t>();
+    TEST_LABELS = new std::vector<label_t>();
+
+    switch(TRAINING_SET){
+        case MNIST:
+            parse_mnist_labels(MNIST_TRAINING_LABELS_FILE_NAME, TRAIN_LABELS);
+            parse_mnist_images(MNIST_TRAINING_DATA_FILE_NAME, TRAIN_DATA, -1.0,1.0, 2, 2);
+            parse_mnist_labels(MNIST_TEST_LABELS_FILE_NAME, TRAIN_LABELS);
+            parse_mnist_images(MNIST_TEST_DATA_FILE_NAME, TRAIN_DATA, -1.0,1.0, 2, 2);
+            break;
+        case CIFAR10:
+            //parse_cifar10();
+            break;
+        default:
+            break;
+    }
+
+
 }

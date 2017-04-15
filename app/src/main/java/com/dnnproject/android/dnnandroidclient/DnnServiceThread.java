@@ -2,10 +2,13 @@ package com.dnnproject.android.dnnandroidclient;
 
 import android.util.Log;
 
+import com.dnnproject.android.dnnandroidclient.tcpclient.DnnMessageTransceiver;
 import com.dnnproject.android.dnnandroidclient.tcpclient.TcpClient;
 
 import java.io.IOException;
 
+import dnnUtil.dnnMessage.DnnHelloMessage;
+import dnnUtil.dnnMessage.DnnMessage;
 import dnnUtil.dnnMessage.DnnTestMessage;
 
 /**
@@ -31,13 +34,16 @@ public class DnnServiceThread extends Thread {
         TcpClient tcpClient = new TcpClient(mDnnServerIP);
         try {
             tcpClient.start();
-            for (int i = 0; i < 20; i++) {
+            for (int i = 0; i < 10; i++) {
                 try {
                     if (this.isInterrupted()) {
                         throw new InterruptedException();
                     }
-                    tcpClient.sendMessage(new DnnTestMessage("Rickster Rick", "And that's the waaaaaay - the news gos!"));
-                    sleep(1000);
+                    tcpClient.sendMessage(new DnnHelloMessage("Rickster Rick", "And that's the waaaaaay - the news gos!"));
+                    Log.i("DnnServiceThread.java", "sent hello message");
+
+                    DnnMessage inMessage = tcpClient.getMessage();
+                    Log.i("DnnServiceThread.java", "Received a DnnMessage");
                 } catch (InterruptedException e) {
                     Log.e("DnnServiceThread.java", "Thread interupted!");
                     e.printStackTrace();
