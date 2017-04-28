@@ -11,12 +11,16 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+//        ndk {
+//            abiFilters 'x86', 'x86_64', 'armeabi', 'armeabi-v7a', 'arm64-v8a'
+//        }
+
         externalNativeBuild {
 
             cmake {
                 arguments   '-DANDROID_PLATFORM=android-16',
-                            '-DANDROID_TOOLCHAIN=gcc',
-                            '-DANDROID_CPP_FEATURES=rtti;exceptions',
+                            '-DANDROID_TOOLCHAIN=clang',
+                            '-DANDROID_CPP_FEATURES=rtti exceptions',
                             '-DANDROID_STL=c++_static'
                 cppFlags "-std=c++11 -frtti -fexceptions"
             }

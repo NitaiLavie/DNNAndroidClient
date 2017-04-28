@@ -1,6 +1,8 @@
 package com.dnnproject.android.dnnandroidclient;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.Button;
@@ -10,6 +12,9 @@ import android.view.View;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
+
+    private SharedPreferences mPrefs;
+    private SharedPreferences.Editor mPrefsEditor;
 
     private TextView serviceText;
     private Button serviceButton;
@@ -51,6 +56,24 @@ public class MainActivity extends AppCompatActivity {
         this.setLayout();
     }
 
+    @Override
+    protected void onResume(){
+        super.onResume();
+        mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+        mPrefsEditor = mPrefs.edit();
+
+        ipEditText.setText(mPrefs.getString(getText(R.string.PrefSavedIP).toString(),""));
+    }
+
+    @Override
+    protected void onPause(){
+        super.onPause();
+        mPrefsEditor.putString(getText(R.string.PrefSavedIP).toString(), ipEditText.getText().toString());
+        mPrefsEditor.commit();
+    }
+
+
+
     public void onClick(View view) {
         Intent intent = new Intent(this, DnnService.class);
         if(dnnServiceStarted == false) {
@@ -81,16 +104,5 @@ public class MainActivity extends AppCompatActivity {
             ipTitleText.setText(getText(R.string.enter_ip_text));
             ipEditText.setEnabled(true);
         }
-    }
-
-    /**
-     * A native method that is implemented by the 'native-lib' native library,
-     * which is packaged with this application.
-     */
-//    public native String stringFromJNI();
-
-    // Used to load the 'native-lib' library on application startup.
-    static {
-        System.loadLibrary("native-lib");
     }
 }

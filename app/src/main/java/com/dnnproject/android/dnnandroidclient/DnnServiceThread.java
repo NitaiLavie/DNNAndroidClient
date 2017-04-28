@@ -8,8 +8,11 @@ import com.dnnproject.android.dnnandroidclient.tcpclient.TcpClient;
 import java.io.IOException;
 
 import dnnUtil.dnnMessage.DnnHelloMessage;
-import dnnUtil.dnnMessage.DnnMessage;
-import dnnUtil.dnnMessage.DnnTestMessage;
+import dnnUtil.dnnMessage.*;
+import dnnUtil.dnnModel.DnnModel;
+import dnnUtil.dnnModel.DnnModelDescriptor;
+import dnnUtil.dnnModel.DnnModelParameters;
+import dnnUtil.dnnModel.DnnTrainingPackage;
 
 /**
  * Created by nitai on 01/04/17.
@@ -29,27 +32,40 @@ public class DnnServiceThread extends Thread {
         super.run();
 
         //TODO: add functionality
+        DnnModel myDnnModel = new DnnModel(new DnnModelParameters());
+        Log.i("DnnServiceThread.java", "Created my own DnnModel!!!");
+
 
         // creating the tcp client
         TcpClient tcpClient = new TcpClient(mDnnServerIP);
         try {
             tcpClient.start();
-            for (int i = 0; i < 10; i++) {
-                try {
-                    if (this.isInterrupted()) {
-                        throw new InterruptedException();
-                    }
-                    tcpClient.sendMessage(new DnnHelloMessage("Rickster Rick", "And that's the waaaaaay - the news gos!"));
-                    Log.i("DnnServiceThread.java", "sent hello message");
 
-                    DnnMessage inMessage = tcpClient.getMessage();
-                    Log.i("DnnServiceThread.java", "Received a DnnMessage");
-                } catch (InterruptedException e) {
-                    Log.e("DnnServiceThread.java", "Thread interupted!");
-                    e.printStackTrace();
-                    break;
+            try {
+                if (this.isInterrupted()) {
+                    throw new InterruptedException();
                 }
+                tcpClient.sendMessage(new DnnHelloMessage("Rickster Rick", "And that's the waaaaaay - the news gos!"));
+                Log.i("DnnServiceThread.java", "sent hello message");
+
+                DnnMessage inMessage = tcpClient.getMessage();
+                Log.i("DnnServiceThread.java", "Received a DnnMessage");
+                if(inMessage instanceof DnnTrainingPackageMessage){
+                    Log.i("DnnServiceThread.java", "Received a DnnTrainingPackageMessage (!!!)");
+                    DnnTrainingPackage receivedTrainingPackage = (DnnTrainingPackage) inMessage.getContent();
+                    DnnModelDescriptor receivedModelDescriptor = receivedTrainingPackage.getModelDescriptor();
+                    Log.i("DnnServiceThread.java", "Successfully extracted DnnModel from Training Package(!!!!!!!)");
+                    DnnModel model = new DnnModel(receivedModelDescriptor);
+                    Log.i("DnnServiceThread.java", "created a new DnnModel instance!");
+                } else {
+                    Log.i("DnnServiceThread.java", "Received DnnMessage is not a DnnTrainingPackageMessage :-(");
+                }
+
+            } catch (InterruptedException e) {
+                Log.e("DnnServiceThread.java", "Thread interupted!");
+                e.printStackTrace();
             }
+
         } catch (IOException e){
             Log.e("DnnServiceThread.java", e.getMessage());
         }

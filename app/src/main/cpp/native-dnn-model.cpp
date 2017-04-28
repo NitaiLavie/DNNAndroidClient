@@ -1,18 +1,16 @@
+#define _ANDROID_ true
+
 #include <jni.h>
 #include <string>
 #include <pthread.h>
-#include <jni.h>
-#include <android/log.h>
 #include <assert.h>
 
-#include <boost/timer.hpp>
-#include <boost/progress.hpp>
-
+#include "boost/timer.hpp"
+#include "boost/progress.hpp"
 #include "tiny_dnn/tiny_dnn.h"
 
-using namespace tiny_dnn;
-using namespace tiny_dnn::activation;
-
+#ifdef _ANDROID_
+#include <android/log.h>
 // Android log function wrappers
 static const char *kTAG = "native_dnn_model";
 #define LOGI(...) \
@@ -21,8 +19,12 @@ static const char *kTAG = "native_dnn_model";
   ((void)__android_log_print(ANDROID_LOG_WARN, kTAG, __VA_ARGS__))
 #define LOGE(...) \
   ((void)__android_log_print(ANDROID_LOG_ERROR, kTAG, __VA_ARGS__))
+#endif
 
-//<editor-fold desc="formatin std::string and jbyteArray">
+using namespace tiny_dnn;
+using namespace tiny_dnn::activation;
+
+//<editor-fold desc="formating std::string and jbyteArray">
 //==================================================================================
 /**
  * formating strings to jbyteArray that we can pass them to Java
@@ -63,10 +65,9 @@ using BinaryString = struct _BinaryString<NetType>;
 template <typename NetType>
 BinaryString<NetType> to_binary_string(network<NetType>& nn) {
     std::stringstream ss;
-    {
-        cereal::BinaryOutputArchive oa(ss);
-        nn.to_archive(oa, content_type::weights_and_model);
-    }
+
+    cereal::BinaryOutputArchive oa(ss);
+    nn.to_archive(oa, content_type::weights_and_model);
 
     BinaryString<NetType> bs;
     bs.str = ss.str();
@@ -81,7 +82,7 @@ void from_binary_string(const BinaryString<NetType>& bs, network<NetType>& nn) {
     std::stringstream ss;
     ss << bs.str;
     cereal::BinaryInputArchive ia(ss);
-    nn.from_archive(ia, content_type::model);
+    nn.from_archive(ia, content_type::weights_and_model);
 }
 //==================================================================================
 //</editor-fold>
@@ -107,15 +108,18 @@ typedef struct _ModelContext {
 // Global variables:
 ModelContext MODEL_CONTEXT;
 training_set TRAINING_SET = MNIST;
+bool NN_INITIATED;
 network<NET_TYPE> NN;
 std::vector<vec_t> *TRAIN_DATA;
 std::vector<label_t> *TRAIN_LABELS;
 std::vector<vec_t> *TEST_DATA;
 std::vector<label_t> *TEST_LABELS;
-std::string MNIST_TRAINING_DATA_FILE_NAME = "";
-std::string MNIST_TRAINING_LABELS_FILE_NAME = "";
-std::string MNIST_TEST_DATA_FILE_NAME = "";
-std::string MNIST_TEST_LABELS_FILE_NAME = "";
+int NUM_OF_LABELS;
+int NUM_OF_DATA;
+std::string MNIST_TRAINING_DATA_FILE_NAME = "/storage/emulated/0/MNIST/train-images.idx3-ubyte";
+std::string MNIST_TRAINING_LABELS_FILE_NAME = "/storage/emulated/0/MNIST/train-labels.idx1-ubyte";
+std::string MNIST_TEST_DATA_FILE_NAME = "/storage/emulated/0/MNIST/t10k-images.idx3-ubyte";
+std::string MNIST_TEST_LABELS_FILE_NAME = "/storage/emulated/0/MNIST/t10k-labels.idx1-ubyte";
 
 /*
  * processing one time initialization:
@@ -135,9 +139,6 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
 
 	memset(&MODEL_CONTEXT, 0, sizeof(MODEL_CONTEXT));
 
-    //Todo: maybe this is not needed
-    memset(&NN, 0, sizeof(network<NET_TYPE>));
-
 	MODEL_CONTEXT.javaVM = vm;
 
 	//Todo: is this necessary?
@@ -150,6 +151,8 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
 
 	MODEL_CONTEXT.done = 0;
 
+    NN_INITIATED = false;
+
 	return JNI_VERSION_1_6;
 }
 
@@ -159,9 +162,11 @@ extern "C"
 JNIEXPORT jbyteArray JNICALL
         Java_dnnUtil_dnnModel_DnnModel_jniCreateModel(JNIEnv *env, jobject instance){
     //Todo: add content
-    NN << convolutional_layer<relu>(32,32,23,23,1,100)
-       << fully_connected_layer<softmax>(100,10);
-
+    if(! NN_INITIATED) {
+        NN << convolutional_layer<relu>(32, 32, 23, 23, 1, 1)
+           << fully_connected_layer<softmax>(100, 10);
+        NN_INITIATED = true;
+    }
     BinaryString<NET_TYPE> binaryString = to_binary_string(NN);
     return string2jbyteArray(env, binaryString.str);
 }
@@ -170,6 +175,7 @@ extern "C"
 JNIEXPORT jbyteArray JNICALL
 Java_dnnUtil_dnnModel_DnnModel_jniUpdateModel(JNIEnv *env, jobject instance){
     //Todo: add content
+    return NULL;//TODO: fix this
 }
 
 extern "C"
@@ -185,29 +191,90 @@ Java_dnnUtil_dnnModel_DnnModel_jniLoadModel(JNIEnv *env, jobject instance, jbyte
 extern "C"
 JNIEXPORT jbyteArray JNICALL
 Java_dnnUtil_dnnModel_DnnModel_jniTrainModel(JNIEnv *env, jobject instance){
-    //Todo: add content
-}
+    jobject dnn_model_object = instance;
+    jclass dnn_model_class = env->GetObjectClass(dnn_model_object);
+    // get mainActivity updateTimer function
+    jmethodID getTrainingDataSizeID = env->GetMethodID( dnn_model_class,
+                                                     "getTrainingDataSize", "()I");
+    jmethodID getIndexTrainingLabelDataID = env->GetMethodID( dnn_model_class,
+                                                         "getIndexTrainingLabelData", "(I)B");
+    jmethodID getIndexTrainingDataID = env->GetMethodID( dnn_model_class,
+                                                    "getIndexTrainingData", "(I)[B");
 
-JNIEXPORT void JNICALL
-Java_dnnUtil_dnnModel_DnnModel_jniLoadTrainingData(JNIEnv *env, jobject instance) {
     TRAIN_DATA = new std::vector<vec_t>();
     TRAIN_LABELS = new std::vector<label_t>();
     TEST_DATA = new std::vector<vec_t>();
     TEST_LABELS = new std::vector<label_t>();
 
+
+    jint numOfData = env->CallIntMethod(dnn_model_object,getTrainingDataSizeID);
+
+    for(jint i = 0; i < numOfData; i++ ){
+//        jbyteArray = env->Array()
+//        TRAIN_DATA.push_back();
+//        TRAIN_LABELS.push_back();
+    }
+    return NULL; //TODO: fix this
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_dnnUtil_dnnModel_DnnModel_jniLoadTrainingData(JNIEnv *env, jobject instance) {
+
+    TRAIN_DATA = new std::vector<vec_t>();
+    TRAIN_LABELS = new std::vector<label_t>();
+    TEST_DATA = new std::vector<vec_t>();
+    TEST_LABELS = new std::vector<label_t>();
+
+
     switch(TRAINING_SET){
         case MNIST:
+            NUM_OF_LABELS = 10;
             parse_mnist_labels(MNIST_TRAINING_LABELS_FILE_NAME, TRAIN_LABELS);
             parse_mnist_images(MNIST_TRAINING_DATA_FILE_NAME, TRAIN_DATA, -1.0,1.0, 2, 2);
-            parse_mnist_labels(MNIST_TEST_LABELS_FILE_NAME, TRAIN_LABELS);
-            parse_mnist_images(MNIST_TEST_DATA_FILE_NAME, TRAIN_DATA, -1.0,1.0, 2, 2);
+            parse_mnist_labels(MNIST_TEST_LABELS_FILE_NAME, TEST_LABELS);
+            parse_mnist_images(MNIST_TEST_DATA_FILE_NAME, TEST_DATA, -1.0,1.0, 2, 2);
             break;
         case CIFAR10:
+            NUM_OF_LABELS = 10;
             //parse_cifar10();
             break;
         default:
+            NUM_OF_LABELS = 10;
             break;
     }
+    NUM_OF_DATA = (int) TRAIN_LABELS->size();
 
+    return (jint) NUM_OF_DATA;
+}
 
+extern "C"
+JNIEXPORT void JNICALL
+Java_dnnUtil_dnnModel_DnnModel_jniGetTraingData(JNIEnv *env, jobject instance, jint startIndex,
+                                                jint endIndex) {
+    jobject dnn_model_object = instance;
+    jclass dnn_model_class = env->GetObjectClass(dnn_model_object);
+    // get mainActivity updateTimer function
+    jmethodID initTrainingDataID = env->GetMethodID( dnn_model_class,
+                                                     "initTrainingData", "(II)V");
+    jmethodID setIndexTrainingDataID = env->GetMethodID( dnn_model_class,
+                                                         "setIndexTrainingData", "(II[F)V");
+
+    int numOfTrainingData = endIndex - startIndex;
+
+    env->CallVoidMethod(dnn_model_object,initTrainingDataID,(jint)NUM_OF_LABELS, (jint)numOfTrainingData);
+    jfloatArray data_array;
+    vec_t data_vec;
+    label_t label;
+    for( int i = startIndex; i < endIndex; i++) {
+        data_vec = TRAIN_DATA->at(i);
+        label = TRAIN_LABELS->at(i);
+
+        data_array = env->NewFloatArray((jsize) data_vec.size());
+        env->SetFloatArrayRegion(data_array,0,(jsize) data_vec.size(),data_vec.data());
+
+        env->CallVoidMethod(dnn_model_object, setIndexTrainingDataID, (jint) i, (jint) label, data_array);
+
+        env->DeleteLocalRef(data_array);
+    }
 }

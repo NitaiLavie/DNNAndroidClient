@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.v4.app.TaskStackBuilder;
+import android.util.Log;
 
 /**
  * Created by nitai on 31/03/17.
@@ -26,43 +27,45 @@ public class DnnService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        if(intent != null) {
+            // getting extras from intent
+            mDnnServerIP = intent.getStringExtra(IP);
 
-        // getting extras from intent
-        mDnnServerIP = intent.getStringExtra(IP);
+            // creating the main service thread
+            mMainThread = new DnnServiceThread(mDnnServerIP);
 
-        // creating the main service thread
-        mMainThread = new DnnServiceThread(mDnnServerIP);
+            // setting up a notification for the forground service:
 
-        // setting up a notification for the forground service:
+            Notification.Builder notificationBuilder = new Notification.Builder(this)
+                    .setSmallIcon(R.mipmap.hamster_cogwheel)
+                    .setContentTitle(getText(R.string.notification_title))
+                    .setContentText(getText(R.string.notification_message))
+                    .setTicker(getText(R.string.ticker_text));
 
-        Notification.Builder notificationBuilder = new Notification.Builder(this)
-                .setSmallIcon(R.mipmap.hamster_cogwheel)
-                .setContentTitle(getText(R.string.notification_title))
-                .setContentText(getText(R.string.notification_message))
-                .setTicker(getText(R.string.ticker_text));
+            TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+            Intent notificationIntent = new Intent(this, MainActivity.class);
+            stackBuilder.addNextIntent(notificationIntent);
+            PendingIntent pendingIntent = stackBuilder.getPendingIntent(
+                    0,
+                    PendingIntent.FLAG_UPDATE_CURRENT
+            );
 
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-        Intent notificationIntent = new Intent(this, MainActivity.class);
-        stackBuilder.addNextIntent(notificationIntent);
-        PendingIntent pendingIntent = stackBuilder.getPendingIntent(
-                0,
-                PendingIntent.FLAG_UPDATE_CURRENT
-        );
+            notificationBuilder.setContentIntent(pendingIntent);
+            NotificationManager notificationManager =
+                    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-        notificationBuilder.setContentIntent(pendingIntent);
-        NotificationManager notificationManager =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            // sending this service to the foreground
+            startForeground(ONGOING_NOTIFICATION_ID, notificationBuilder.build());
 
-        // sending this service to the foreground
-        startForeground(ONGOING_NOTIFICATION_ID, notificationBuilder.build());
+            ////////
 
-        ////////
+            // Starting main service thread:
+            mMainThread.start();
 
-        // Starting main service thread:
-        mMainThread.start();
-
-        ////////
-
+            ////////
+        } else {
+            Log.i("DnnService.java","Relunched DnnService with 'null' Intent");
+        }
         return Service.START_STICKY;
     }
 
