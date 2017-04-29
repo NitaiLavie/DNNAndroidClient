@@ -42,6 +42,7 @@ public class TcpClient implements DnnMessageTransceiver{
          */
         @Override
         public void run() {
+            //Todo: handle case when Server is disconnected and receiving EOF
             while(mRun == true){
                 try {
 

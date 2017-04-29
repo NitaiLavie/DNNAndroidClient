@@ -7,12 +7,8 @@ import com.dnnproject.android.dnnandroidclient.tcpclient.TcpClient;
 
 import java.io.IOException;
 
-import dnnUtil.dnnMessage.DnnHelloMessage;
 import dnnUtil.dnnMessage.*;
-import dnnUtil.dnnModel.DnnModel;
-import dnnUtil.dnnModel.DnnModelDescriptor;
-import dnnUtil.dnnModel.DnnModelParameters;
-import dnnUtil.dnnModel.DnnTrainingPackage;
+import dnnUtil.dnnModel.*;
 
 /**
  * Created by nitai on 01/04/17.
@@ -32,8 +28,8 @@ public class DnnServiceThread extends Thread {
         super.run();
 
         //TODO: add functionality
-        DnnModel myDnnModel = new DnnModel(new DnnModelParameters());
-        Log.i("DnnServiceThread.java", "Created my own DnnModel!!!");
+//        DnnModel myDnnModel = new DnnModel(new DnnModelParameters());
+//        Log.i("DnnServiceThread.java", "Created my own DnnModel!!!");
 
 
         // creating the tcp client
@@ -53,10 +49,16 @@ public class DnnServiceThread extends Thread {
                 if(inMessage instanceof DnnTrainingPackageMessage){
                     Log.i("DnnServiceThread.java", "Received a DnnTrainingPackageMessage (!!!)");
                     DnnTrainingPackage receivedTrainingPackage = (DnnTrainingPackage) inMessage.getContent();
+                    Log.i("DnnServiceThread.java", "Successfully extracted DnnTrainingPackage from DnnTrainingPackageMessage(!!!!)");
+                    DnnTrainingData receivedTrainingData = receivedTrainingPackage.getTrainingData();
+                    Log.i("DnnServiceThread.java", "Successfully extracted DnnTrainingData from Training Package(!!!!!)");
                     DnnModelDescriptor receivedModelDescriptor = receivedTrainingPackage.getModelDescriptor();
-                    Log.i("DnnServiceThread.java", "Successfully extracted DnnModel from Training Package(!!!!!!!)");
+                    Log.i("DnnServiceThread.java", "Successfully extracted DnnModelDescriptor from Training Package(!!!!!!)");
                     DnnModel model = new DnnModel(receivedModelDescriptor);
-                    Log.i("DnnServiceThread.java", "created a new DnnModel instance!");
+                    Log.i("DnnServiceThread.java", "created a new DnnModel instance(!!!!!!!)");
+                    model.setTrainingData(receivedTrainingData);
+                    Log.i("DnnServiceThread.java", "set received training data to created DnnModel(!!!!!!!!)");
+
                 } else {
                     Log.i("DnnServiceThread.java", "Received DnnMessage is not a DnnTrainingPackageMessage :-(");
                 }

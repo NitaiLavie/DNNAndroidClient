@@ -254,15 +254,15 @@ Java_dnnUtil_dnnModel_DnnModel_jniGetTraingData(JNIEnv *env, jobject instance, j
                                                 jint endIndex) {
     jobject dnn_model_object = instance;
     jclass dnn_model_class = env->GetObjectClass(dnn_model_object);
-    // get mainActivity updateTimer function
+
     jmethodID initTrainingDataID = env->GetMethodID( dnn_model_class,
-                                                     "initTrainingData", "(II)V");
+                                                     "initTrainingData", "(III)V");
     jmethodID setIndexTrainingDataID = env->GetMethodID( dnn_model_class,
                                                          "setIndexTrainingData", "(II[F)V");
 
     int numOfTrainingData = endIndex - startIndex;
-
-    env->CallVoidMethod(dnn_model_object,initTrainingDataID,(jint)NUM_OF_LABELS, (jint)numOfTrainingData);
+    int sizeOfData = TRAIN_DATA->at(0).size();
+    env->CallVoidMethod(dnn_model_object,initTrainingDataID,(jint)NUM_OF_LABELS, (jint)numOfTrainingData, (jint)sizeOfData);
     jfloatArray data_array;
     vec_t data_vec;
     label_t label;
@@ -277,4 +277,27 @@ Java_dnnUtil_dnnModel_DnnModel_jniGetTraingData(JNIEnv *env, jobject instance, j
 
         env->DeleteLocalRef(data_array);
     }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_dnnUtil_dnnModel_DnnModel_jniSetTrainingData(JNIEnv *env, jobject instance,
+                                                  jfloatArray data, jintArray labels,
+                                                  jint numOfData, jint dataSize) {
+
+    TRAIN_DATA = new std::vector<vec_t>();
+    TRAIN_LABELS = new std::vector<label_t>();
+
+    jfloat *train_data = env->GetFloatArrayElements(data, 0);
+    jint *train_labels = env->GetIntArrayElements(labels, 0);
+
+    for( int i = 0; i < numOfData; i++){
+        TRAIN_LABELS->at(i) = (int) train_labels[i];
+        vec_t *vec =  new vec_t();
+        for(int j = 0; j<dataSize; j++){
+            vec->at(j) = (float) train_data[i*dataSize + j];
+        }
+        TRAIN_DATA->at(i) = *vec;
+    }
+
 }
