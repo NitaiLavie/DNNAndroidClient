@@ -59,6 +59,11 @@ public class DnnServiceThread extends Thread {
                     model.setTrainingData(receivedTrainingData);
                     Log.i("DnnServiceThread.java", "set received training data to created DnnModel(!!!!!!!!)");
 
+                    Log.i("DnnServiceThread.java", "training the created DnnModel with the given training data");
+                    model.trainModel();
+                    Log.i("DnnServiceThread.java", "the DnnModel finished training successfully!!! :-) :-) :-) :-)");
+
+
                 } else {
                     Log.i("DnnServiceThread.java", "Received DnnMessage is not a DnnTrainingPackageMessage :-(");
                 }

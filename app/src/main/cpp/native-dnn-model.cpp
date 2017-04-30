@@ -191,30 +191,31 @@ Java_dnnUtil_dnnModel_DnnModel_jniLoadModel(JNIEnv *env, jobject instance, jbyte
 extern "C"
 JNIEXPORT jbyteArray JNICALL
 Java_dnnUtil_dnnModel_DnnModel_jniTrainModel(JNIEnv *env, jobject instance){
-    jobject dnn_model_object = instance;
-    jclass dnn_model_class = env->GetObjectClass(dnn_model_object);
-    // get mainActivity updateTimer function
-    jmethodID getTrainingDataSizeID = env->GetMethodID( dnn_model_class,
-                                                     "getTrainingDataSize", "()I");
-    jmethodID getIndexTrainingLabelDataID = env->GetMethodID( dnn_model_class,
-                                                         "getIndexTrainingLabelData", "(I)B");
-    jmethodID getIndexTrainingDataID = env->GetMethodID( dnn_model_class,
-                                                    "getIndexTrainingData", "(I)[B");
 
-    TRAIN_DATA = new std::vector<vec_t>();
-    TRAIN_LABELS = new std::vector<label_t>();
-    TEST_DATA = new std::vector<vec_t>();
-    TEST_LABELS = new std::vector<label_t>();
+    int minibatch_size = NUM_OF_DATA;
+    int num_epochs = 1;
+    int minibatchCount = 0;
+
+    adagrad opt;
+    opt.alpha *= std::sqrt(minibatch_size);
+
+    // create callback
+    auto on_enumerate_epoch = [&](){
+        minibatchCount = 0;
+    };
+
+    auto on_enumerate_minibatch = [&](){
+        minibatchCount++;
+    };
+
+    // training
+
+    NN.train<mse>(opt, *TRAIN_DATA, *TRAIN_LABELS, minibatch_size, num_epochs,
+                  on_enumerate_minibatch, on_enumerate_epoch);
 
 
-    jint numOfData = env->CallIntMethod(dnn_model_object,getTrainingDataSizeID);
 
-    for(jint i = 0; i < numOfData; i++ ){
-//        jbyteArray = env->Array()
-//        TRAIN_DATA.push_back();
-//        TRAIN_LABELS.push_back();
-    }
-    return NULL; //TODO: fix this
+    return NULL;
 }
 
 extern "C"
@@ -283,21 +284,25 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_dnnUtil_dnnModel_DnnModel_jniSetTrainingData(JNIEnv *env, jobject instance,
                                                   jfloatArray data, jintArray labels,
-                                                  jint numOfData, jint dataSize) {
-
+                                                  jint numOfData, jint dataSize, jint numOfLabels) {
+    NUM_OF_LABELS = numOfLabels;
+    NUM_OF_DATA = numOfData;
     TRAIN_DATA = new std::vector<vec_t>();
     TRAIN_LABELS = new std::vector<label_t>();
 
     jfloat *train_data = env->GetFloatArrayElements(data, 0);
     jint *train_labels = env->GetIntArrayElements(labels, 0);
 
-    for( int i = 0; i < numOfData; i++){
-        TRAIN_LABELS->at(i) = (int) train_labels[i];
+    for( int i = 0; i < NUM_OF_DATA; i++){
+        TRAIN_LABELS->push_back((int) train_labels[i]);
         vec_t *vec =  new vec_t();
         for(int j = 0; j<dataSize; j++){
-            vec->at(j) = (float) train_data[i*dataSize + j];
+            vec->push_back((float) train_data[i*dataSize + j]);
         }
-        TRAIN_DATA->at(i) = *vec;
+        TRAIN_DATA->push_back(*vec);
     }
+
+
+
 
 }
