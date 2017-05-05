@@ -58,22 +58,16 @@ public class DnnServiceThread extends Thread {
                     Log.i("DnnServiceThread.java", "created a new DnnModel instance(!!!!!!!)");
                     model.setTrainingData(receivedTrainingData);
                     Log.i("DnnServiceThread.java", "set received training data to created DnnModel(!!!!!!!!)");
-
                     Log.i("DnnServiceThread.java", "training the created DnnModel with the given training data");
                     model.trainModel();
                     Log.i("DnnServiceThread.java", "the DnnModel finished training successfully!!! :-) :-) :-) :-)");
-
-                    DnnWeightsData currentWeights = model.getWeightsData();
-                    Log.i("DnnServiceThread.java", "extracted weights Data");
-
-                    model = new DnnModel(receivedModelDescriptor);
-                    Log.i("DnnServiceThread.java", "the DnnModel have be set back to the original given weights");
-
-                    model.setWeightsData(currentWeights);
-                    Log.i("DnnServiceThread.java", "set the weights Data back");
-
                     DnnWeightsData newWeights = model.getWeightsData();
                     Log.i("DnnServiceThread.java", "extracted weights Data");
+
+                    tcpClient.sendMessage(new DnnWeightsMessage("Rickster Rick", newWeights));
+                    Log.i("DnnServiceThread.java", "new weights sent to server!");
+
+
 
 
 
