@@ -63,6 +63,19 @@ public class DnnServiceThread extends Thread {
                     model.trainModel();
                     Log.i("DnnServiceThread.java", "the DnnModel finished training successfully!!! :-) :-) :-) :-)");
 
+                    DnnWeightsData currentWeights = model.getWeightsData();
+                    Log.i("DnnServiceThread.java", "extracted weights Data");
+
+                    model = new DnnModel(receivedModelDescriptor);
+                    Log.i("DnnServiceThread.java", "the DnnModel have be set back to the original given weights");
+
+                    model.setWeightsData(currentWeights);
+                    Log.i("DnnServiceThread.java", "set the weights Data back");
+
+                    DnnWeightsData newWeights = model.getWeightsData();
+                    Log.i("DnnServiceThread.java", "extracted weights Data");
+
+
 
                 } else {
                     Log.i("DnnServiceThread.java", "Received DnnMessage is not a DnnTrainingPackageMessage :-(");

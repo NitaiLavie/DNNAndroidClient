@@ -301,8 +301,77 @@ Java_dnnUtil_dnnModel_DnnModel_jniSetTrainingData(JNIEnv *env, jobject instance,
         }
         TRAIN_DATA->push_back(*vec);
     }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_dnnUtil_dnnModel_DnnModel_jniGetWeightsData(JNIEnv *env, jobject instance) {
+    jobject dnn_model_object = instance;
+    jclass dnn_model_class = env->GetObjectClass(dnn_model_object);
+
+    jmethodID initWeightsDataID = env->GetMethodID( dnn_model_class,
+                                                     "initWeightsData", "()V");
+    jmethodID setLayerWeightsID = env->GetMethodID( dnn_model_class,
+                                                         "setLayerWeights", "([FI)V");
+    jmethodID setLayerBiasesID = env->GetMethodID( dnn_model_class,
+                                                    "setLayerBiases", "([FI)V");
+
+    env->CallVoidMethod(dnn_model_object, initWeightsDataID);
+
+    std::vector<vec_t*> weights;
+    jfloatArray weights_array;
+    jfloatArray biases_array;
+    for(int i = 0; i < NN.depth(); i++){
+        // 0 = weights, 1 = biases
+        weights = NN[i]->weights();
+
+        weights_array = env->NewFloatArray((jsize) weights.at(0)->size());
+        biases_array = env->NewFloatArray((jsize) weights.at(1)->size());
+        env->SetFloatArrayRegion(weights_array,0,(jsize) weights.at(0)->size(),weights.at(0)->data());
+        env->SetFloatArrayRegion(biases_array,0,(jsize) weights.at(1)->size(),weights.at(1)->data());
+
+        env->CallVoidMethod(dnn_model_object, setLayerWeightsID, weights_array, (jint) i);
+        env->CallVoidMethod(dnn_model_object, setLayerBiasesID, biases_array, (jint) i);
+
+        env->DeleteLocalRef(weights_array);
+        env->DeleteLocalRef(biases_array);
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_dnnUtil_dnnModel_DnnModel_jniSetWeightsData(JNIEnv *env, jobject instance) {
+    jobject dnn_model_object = instance;
+    jclass dnn_model_class = env->GetObjectClass(dnn_model_object);
+
+    jmethodID getLayerWeightsDataID = env->GetMethodID( dnn_model_class,
+                                                    "getLayerWeightsData", "(I)V");
+    for(int i = 0; i < NN.depth(); i++){
+        env->CallVoidMethod(dnn_model_object, getLayerWeightsDataID, (jint) i);
+    }
+
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_dnnUtil_dnnModel_DnnModel_jniSetLayerWeightsData(JNIEnv *env, jobject instance,jint layerIndex,
+                                                      jfloatArray weights, jfloatArray biases) {
+
+    jsize weights_size = env->GetArrayLength(weights);
+    jint biases_size = env->GetArrayLength(biases);
+
+    jfloat *weights_data = env->GetFloatArrayElements(weights, 0);
+    jfloat *biases_data = env->GetFloatArrayElements(biases, 0);
 
 
+    std::vector<vec_t*> weights_vector = NN[layerIndex]->weights();;
+    float *layer_weights = weights_vector.at(0)->data();
+    float *layer_biases = weights_vector.at(1)->data();
 
-
+    for( int i = 0; i < weights_size; i++){
+        layer_weights[i] = weights_data[i];
+    }
+    for( int i = 0; i < biases_size; i++){
+        layer_biases[i] = biases_data[i];
+    }
 }
