@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
+import android.provider.Settings;
 import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 
@@ -31,8 +32,12 @@ public class DnnService extends Service {
             // getting extras from intent
             mDnnServerIP = intent.getStringExtra(IP);
 
+
+            // getting a uniqe device_id
+            String androidId = Settings.Secure.getString(getApplicationContext().getContentResolver(),
+                    Settings.Secure.ANDROID_ID);
             // creating the main service thread
-            mMainThread = new DnnServiceThread(mDnnServerIP);
+            mMainThread = new DnnServiceThread(mDnnServerIP,androidId);
 
             // setting up a notification for the forground service:
 

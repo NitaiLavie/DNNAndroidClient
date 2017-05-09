@@ -17,10 +17,12 @@ import dnnUtil.dnnModel.*;
 public class DnnServiceThread extends Thread {
 
     private final String mDnnServerIP;
+    private final String mAndroidID;
 
-    public DnnServiceThread(String dnnServerIP){
+    public DnnServiceThread(String dnnServerIP, String androidId){
         super();
         mDnnServerIP = dnnServerIP;
+        mAndroidID = androidId;
     }
 
     @Override
@@ -28,9 +30,6 @@ public class DnnServiceThread extends Thread {
         super.run();
 
         //TODO: add functionality
-//        DnnModel myDnnModel = new DnnModel(new DnnModelParameters());
-//        Log.i("DnnServiceThread.java", "Created my own DnnModel!!!");
-
 
         // creating the tcp client
         TcpClient tcpClient = new TcpClient(mDnnServerIP);
@@ -41,7 +40,7 @@ public class DnnServiceThread extends Thread {
                 if (this.isInterrupted()) {
                     throw new InterruptedException();
                 }
-                tcpClient.sendMessage(new DnnHelloMessage("Rickster Rick", "And that's the waaaaaay - the news gos!"));
+                tcpClient.sendMessage(new DnnHelloMessage(mAndroidID, "Hello"));
                 Log.i("DnnServiceThread.java", "sent hello message");
 
                 DnnMessage inMessage = tcpClient.getMessage();
