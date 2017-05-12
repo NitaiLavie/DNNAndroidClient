@@ -19,6 +19,7 @@ import dnnUtil.dnnModel.DnnWeightsData;
  */
 
 public class ClientLogic {
+    private static final String TAG = "ClientLogic";
 
     private final DnnMessageTransceiver mMessageTransceiver;
     private final Thread mThread;
@@ -39,7 +40,7 @@ public class ClientLogic {
         try {
             // sending first hello message to server
             mMessageTransceiver.sendMessage(new DnnHelloMessage(mAndroidId, "Hello"));
-            Log.i("DnnServiceThread.java", "sent hello message");
+            Log.i(TAG, "sent hello message");
 
             while(mRun){
                 if (mThread.isInterrupted()) {
@@ -53,36 +54,39 @@ public class ClientLogic {
 
                 switch(messageType){
                     case MODEL:
-                        Log.i("DnnServiceThread.java", "Received a new dnn model");
-                        Log.i("DnnServiceThread.java", "Creating the model");
+                        Log.i(TAG, "Received a new dnn model");
+                        Log.i(TAG, "Creating the model");
                         mModel = new DnnModel((DnnModelDescriptor)inMessage.getContent());
 
-                        Log.i("DnnServiceThread.java", "Model ready! sending ready message to server");
+                        Log.i(TAG, "Model ready! sending ready message to server");
                         mMessageTransceiver.sendMessage(new DnnReadyMessage(mAndroidId,"Ready"));
+                        break;
 
                     case TRAININGDATA:
-                        Log.i("DnnServiceThread.java", "Received new training data");
-                        Log.i("DnnServiceThread.java", "Setting received training data to created DnnModel");
+                        Log.i(TAG, "Received new training data");
+                        Log.i(TAG, "Setting received training data to created DnnModel");
                         mModel.setTrainingData((DnnTrainingData)inMessage.getContent());
-                        Log.i("DnnServiceThread.java", "Training the model");
+                        Log.i(TAG, "Training the model");
                         mModel.trainModel();
 
-                        Log.i("DnnServiceThread.java", "Finished training! sending new weights to server");
+                        Log.i(TAG, "Finished training! sending new weights to server");
                         mMessageTransceiver.sendMessage(new DnnWeightsMessage(mAndroidId, mModel.getWeightsData()));
+                        break;
 
                     case WEIGHTS:
-                        Log.i("DnnServiceThread.java", "Received new model weights");
-                        Log.i("DnnServiceThread.java", "Setting new weights to new model");
+                        Log.i(TAG, "Received new model weights");
+                        Log.i(TAG, "Setting new weights to new model");
                         mModel.setWeightsData((DnnWeightsData)inMessage.getContent());
 
-                        Log.i("DnnServiceThread.java", "Model ready! sending ready message to server");
+                        Log.i(TAG, "Model ready! sending ready message to server");
                         mMessageTransceiver.sendMessage(new DnnReadyMessage(mAndroidId,"Ready"));
+                        break;
 
                     default:
                 }
             }
         } catch (InterruptedException e) {
-            Log.e("DnnServiceThread.java", "Thread interupted!");
+            Log.e(TAG, "Thread interupted!");
             e.printStackTrace();
         }
     }

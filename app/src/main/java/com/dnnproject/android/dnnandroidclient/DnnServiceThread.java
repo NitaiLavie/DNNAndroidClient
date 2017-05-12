@@ -12,6 +12,7 @@ import java.io.IOException;
  */
 
 public class DnnServiceThread extends Thread {
+    private static final String TAG = "DnnServiceThread";
 
     private final String mDnnServerIP;
     private final String mAndroidId;
@@ -37,13 +38,13 @@ public class DnnServiceThread extends Thread {
             clientLogic.run();
 
         } catch (IOException e){
-            Log.e("DnnServiceThread.java", e.getMessage());
+            Log.e(TAG, e.getMessage());
         }
 
         try {
             tcpClient.stop();
         } catch (IOException e) {
-            Log.e("DnnServiceThread.java", "Could not stop tcp client!");
+            Log.e(TAG, "Could not stop tcp client!");
             e.printStackTrace();
         }
     }

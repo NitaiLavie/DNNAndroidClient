@@ -17,6 +17,7 @@ import android.util.Log;
  */
 
 public class DnnService extends Service {
+    private static final String TAG = "DnnService";
 
     // for foreground service test:
     public static final int ONGOING_NOTIFICATION_ID = 666;
@@ -69,7 +70,7 @@ public class DnnService extends Service {
 
             ////////
         } else {
-            Log.i("DnnService.java","Relunched DnnService with 'null' Intent");
+            Log.i(TAG,"Relunched DnnService with 'null' Intent");
         }
         return Service.START_STICKY;
     }

@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String TAG = "MainActivity";
 
     private SharedPreferences mPrefs;
     private SharedPreferences.Editor mPrefsEditor;

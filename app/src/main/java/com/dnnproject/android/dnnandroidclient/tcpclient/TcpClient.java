@@ -15,6 +15,7 @@ import dnnUtil.dnnMessage.DnnMessage;
 
 
 public class TcpClient implements DnnMessageTransceiver{
+    private static final String TAG = "TcpClient";
 
     // server default access port
     public static final int SERVER_PORT = 2828;
@@ -54,14 +55,14 @@ public class TcpClient implements DnnMessageTransceiver{
                         try {
                             mInputMessageQueue.put((DnnMessage) message);
                         } catch (InterruptedException e) {
-                            Log.e("TcpClient.java", "mInputListener: input queue put interupt - DnnMessage lost!");
+                            Log.e(TAG, "mInputListener: input queue put interupt - DnnMessage lost!");
                             e.printStackTrace();
                         }
 
                     }
 
                 } catch (NotDnnMessageException e) {
-                    Log.e("TcpClient.java",e.getMessage());
+                    Log.e(TAG,e.getMessage());
                     e.printStackTrace();
                 } catch (ClassNotFoundException e) {
                     e.printStackTrace();
@@ -83,7 +84,7 @@ public class TcpClient implements DnnMessageTransceiver{
                     DnnMessage message = mOutputMessageQueue.take();
                     mOutputStream.writeObject(message);
                 } catch (InterruptedException e) {
-                    Log.e("TcpClient.java", "mOutputListener: output queue take interupt");
+                    Log.e(TAG, "mOutputListener: output queue take interupt");
                     e.printStackTrace();
                 } catch (IOException e) {
                     e.printStackTrace();
