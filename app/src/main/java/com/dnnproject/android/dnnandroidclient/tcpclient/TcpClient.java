@@ -94,7 +94,7 @@ public class TcpClient implements DnnMessageTransceiver{
     };
 
     /**
-     * Constructor of the class. OnMessagedReceived listens for the messages received from server
+     * Constructor of the class.
      */
     public TcpClient(String serverIP) {
         mServerIP = serverIP;

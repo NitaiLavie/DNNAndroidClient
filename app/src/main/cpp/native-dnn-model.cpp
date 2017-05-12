@@ -116,10 +116,10 @@ std::vector<vec_t> *TEST_DATA;
 std::vector<label_t> *TEST_LABELS;
 int NUM_OF_LABELS;
 int NUM_OF_DATA;
-std::string MNIST_TRAINING_DATA_FILE_NAME = "/storage/emulated/0/MNIST/train-images.idx3-ubyte";
-std::string MNIST_TRAINING_LABELS_FILE_NAME = "/storage/emulated/0/MNIST/train-labels.idx1-ubyte";
-std::string MNIST_TEST_DATA_FILE_NAME = "/storage/emulated/0/MNIST/t10k-images.idx3-ubyte";
-std::string MNIST_TEST_LABELS_FILE_NAME = "/storage/emulated/0/MNIST/t10k-labels.idx1-ubyte";
+std::string MNIST_TRAINING_DATA_FILE_NAME = "train-images.idx3-ubyte";
+std::string MNIST_TRAINING_LABELS_FILE_NAME = "train-labels.idx1-ubyte";
+std::string MNIST_TEST_DATA_FILE_NAME = "t10k-images.idx3-ubyte";
+std::string MNIST_TEST_LABELS_FILE_NAME = "t10k-labels.idx1-ubyte";
 
 /*
  * processing one time initialization:
@@ -251,7 +251,7 @@ Java_dnnUtil_dnnModel_DnnModel_jniLoadTrainingData(JNIEnv *env, jobject instance
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_dnnUtil_dnnModel_DnnModel_jniGetTraingData(JNIEnv *env, jobject instance, jint startIndex,
+Java_dnnUtil_dnnModel_DnnModel_jniGetTrainingData(JNIEnv *env, jobject instance, jint startIndex,
                                                 jint endIndex) {
     jobject dnn_model_object = instance;
     jclass dnn_model_class = env->GetObjectClass(dnn_model_object);
@@ -274,7 +274,7 @@ Java_dnnUtil_dnnModel_DnnModel_jniGetTraingData(JNIEnv *env, jobject instance, j
         data_array = env->NewFloatArray((jsize) data_vec.size());
         env->SetFloatArrayRegion(data_array,0,(jsize) data_vec.size(),data_vec.data());
 
-        env->CallVoidMethod(dnn_model_object, setIndexTrainingDataID, (jint) i, (jint) label, data_array);
+        env->CallVoidMethod(dnn_model_object, setIndexTrainingDataID, (jint) (i-startIndex), (jint) label, data_array);
 
         env->DeleteLocalRef(data_array);
     }
