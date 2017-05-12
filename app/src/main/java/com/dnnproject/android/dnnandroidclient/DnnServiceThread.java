@@ -38,7 +38,12 @@ public class DnnServiceThread extends Thread {
             clientLogic.run();
 
         } catch (IOException e){
-            Log.e(TAG, e.getMessage());
+            if(e.getMessage() != null){
+                Log.e(TAG, e.getMessage());
+            } else {
+                Log.e(TAG, e.getClass().getSimpleName() + "Occured!" );
+            }
+
         }
 
         try {
