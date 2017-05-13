@@ -41,7 +41,7 @@ public class DnnServiceThread extends Thread {
             if(e.getMessage() != null){
                 Log.e(TAG, e.getMessage());
             } else {
-                Log.e(TAG, e.getClass().getSimpleName() + "Occured!" );
+                Log.e(TAG, e.getClass().getSimpleName() + " Occured!" );
             }
 
         }

@@ -30,7 +30,7 @@ using namespace tiny_dnn::activation;
  * formating strings to jbyteArray that we can pass them to Java
  * and handle them as byte[]
  */
-jbyteArray string2jbyteArray(JNIEnv * env, const std::string &nativeString) {
+jbyteArray string2jbyteArray(JNIEnv * env, const std::string nativeString) {
     jbyteArray arr = env->NewByteArray(nativeString.length());
     env->SetByteArrayRegion(arr,0,nativeString.length(),(jbyte*)nativeString.c_str());
     return arr;
@@ -41,6 +41,8 @@ std::string jbyteArray2string (JNIEnv * env, const jbyteArray &byteArray) {
     unsigned char* buf = new unsigned char[len];
     env->GetByteArrayRegion(byteArray, 0, len, reinterpret_cast<jbyte*>(buf));
     std::string* pStr =  new std::string((char*) buf,len);
+    delete[] buf;
+
     return *pStr;
 }
 //==================================================================================
@@ -186,6 +188,8 @@ Java_dnnUtil_dnnModel_DnnModel_jniLoadModel(JNIEnv *env, jobject instance, jbyte
     bs.str = jbyteArray2string(env, binaryData);
 
     from_binary_string(bs, NN);
+
+    //delete bs.str;
 }
 
 extern "C"
@@ -287,6 +291,10 @@ Java_dnnUtil_dnnModel_DnnModel_jniSetTrainingData(JNIEnv *env, jobject instance,
                                                   jint numOfData, jint dataSize, jint numOfLabels) {
     NUM_OF_LABELS = numOfLabels;
     NUM_OF_DATA = numOfData;
+
+    if(TRAIN_DATA != NULL) delete TRAIN_DATA;
+    if(TRAIN_LABELS != NULL) delete TRAIN_LABELS;
+
     TRAIN_DATA = new std::vector<vec_t>();
     TRAIN_LABELS = new std::vector<label_t>();
 
@@ -300,7 +308,12 @@ Java_dnnUtil_dnnModel_DnnModel_jniSetTrainingData(JNIEnv *env, jobject instance,
             vec->push_back((float) train_data[i*dataSize + j]);
         }
         TRAIN_DATA->push_back(*vec);
+        delete vec;
     }
+
+    env->ReleaseFloatArrayElements(data,train_data,0);
+    env->ReleaseIntArrayElements(labels,train_labels, 0);
+
 }
 
 extern "C"
@@ -374,4 +387,7 @@ Java_dnnUtil_dnnModel_DnnModel_jniSetLayerWeightsData(JNIEnv *env, jobject insta
     for( int i = 0; i < biases_size; i++){
         layer_biases[i] = biases_data[i];
     }
+
+    env->ReleaseFloatArrayElements(weights, weights_data, 0);
+    env->ReleaseFloatArrayElements(biases, biases_data, 0);
 }

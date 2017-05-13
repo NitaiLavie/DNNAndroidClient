@@ -2,6 +2,8 @@ package com.dnnproject.android.dnnandroidclient.tcpclient;
 
 import android.util.Log;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -29,6 +31,8 @@ public class TcpClient implements DnnMessageTransceiver{
     private Socket mSocket;
 
     // input and output streams
+    private BufferedInputStream mInputBuf;
+    private BufferedOutputStream mOutputBuf;
     private ObjectInputStream mInputStream;
     private ObjectOutputStream mOutputStream;
 
@@ -83,6 +87,7 @@ public class TcpClient implements DnnMessageTransceiver{
                 try {
                     DnnMessage message = mOutputMessageQueue.take();
                     mOutputStream.writeObject(message);
+                    mOutputStream.flush();
                 } catch (InterruptedException e) {
                     Log.e(TAG, "mOutputListener: output queue take interupt");
                     e.printStackTrace();
@@ -121,8 +126,12 @@ public class TcpClient implements DnnMessageTransceiver{
         mSocket = new Socket(serverAddr, SERVER_PORT);
         if(mSocket.isConnected()) {
             // initiate output and input streams
-            mInputStream = new ObjectInputStream(mSocket.getInputStream());
-            mOutputStream = new ObjectOutputStream(mSocket.getOutputStream());
+            mOutputBuf = new BufferedOutputStream(mSocket.getOutputStream());
+            mOutputStream = new ObjectOutputStream(mOutputBuf);
+            mOutputStream.flush();
+            mInputBuf = new BufferedInputStream(mSocket.getInputStream());
+            mInputStream = new ObjectInputStream(mInputBuf);
+
 
             // starting input and output listeners threads
             mInputListener.start();
@@ -146,12 +155,11 @@ public class TcpClient implements DnnMessageTransceiver{
         mRun = false;
 
         // close all connection buffers and streams
-        if(mOutputStream != null)
-            mOutputStream.close();
-        if(mInputStream != null)
-            mInputStream.close();
-        if(mSocket != null)
-            mSocket.close();
+        if(mOutputStream != null) mOutputStream.close();
+        if(mInputStream != null) mInputStream.close();
+        if(mOutputBuf != null) mOutputBuf.close();
+        if(mInputBuf != null) mInputBuf.close();
+        if(mSocket != null) mSocket.close();
     }
 
     // declaring NotDnnMessageException for TcpClient's use:
