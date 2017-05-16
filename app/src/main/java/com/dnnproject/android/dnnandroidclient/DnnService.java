@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.provider.Settings;
 import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
@@ -37,8 +38,13 @@ public class DnnService extends Service {
             // getting a uniqe device_id
             String androidId = Settings.Secure.getString(getApplicationContext().getContentResolver(),
                     Settings.Secure.ANDROID_ID);
+
+            // getting a PartialWakeLock so this service threads will run even when the device is locked
+            PowerManager mgr = (PowerManager)getApplicationContext().getSystemService(Context.POWER_SERVICE);
+            PowerManager.WakeLock wakeLock = mgr.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "DnnWakeLock");
+
             // creating the main service thread
-            mMainThread = new DnnServiceThread(mDnnServerIP,androidId);
+            mMainThread = new DnnServiceThread(mDnnServerIP,wakeLock,androidId);
 
             // setting up a notification for the forground service:
 

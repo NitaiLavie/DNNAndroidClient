@@ -1,5 +1,6 @@
 package com.dnnproject.android.dnnandroidclient;
 
+import android.os.PowerManager;
 import android.util.Log;
 
 import com.dnnproject.android.dnnandroidclient.clientlogic.ClientLogic;
@@ -16,18 +17,21 @@ public class DnnServiceThread extends Thread {
 
     private final String mDnnServerIP;
     private final String mAndroidId;
+    private final PowerManager.WakeLock mWakeLock;
 
-    public DnnServiceThread(String dnnServerIP, String androidId){
+    public DnnServiceThread(String dnnServerIP, PowerManager.WakeLock wakeLock, String androidId){
         super();
         mDnnServerIP = dnnServerIP;
         mAndroidId = androidId;
+        mWakeLock = wakeLock;
     }
 
     @Override
     public void run(){
         super.run();
 
-        //TODO: add functionality
+        // locking the partial wake lock
+        mWakeLock.acquire();
 
         // creating the tcp client
         TcpClient tcpClient = new TcpClient(mDnnServerIP);
@@ -52,6 +56,9 @@ public class DnnServiceThread extends Thread {
             Log.e(TAG, "Could not stop tcp client!");
             e.printStackTrace();
         }
+
+        // unlocking the partial wake lock
+        mWakeLock.release();
     }
 
 }
