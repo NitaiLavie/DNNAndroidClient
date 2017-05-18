@@ -263,25 +263,29 @@ Java_dnnUtil_dnnModel_DnnModel_jniGetTrainingData(JNIEnv *env, jobject instance,
     jmethodID initTrainingDataID = env->GetMethodID( dnn_model_class,
                                                      "initTrainingData", "(III)V");
     jmethodID setIndexTrainingDataID = env->GetMethodID( dnn_model_class,
-                                                         "setIndexTrainingData", "(II[F)V");
+                                                         "setIndexTrainingData", "([I[F)V");
 
     int numOfTrainingData = endIndex - startIndex;
     int sizeOfData = TRAIN_DATA->at(0).size();
     env->CallVoidMethod(dnn_model_object,initTrainingDataID,(jint)NUM_OF_LABELS, (jint)numOfTrainingData, (jint)sizeOfData);
-    jfloatArray data_array;
-    vec_t data_vec;
-    label_t label;
-    for( int i = startIndex; i < endIndex; i++) {
-        data_vec = TRAIN_DATA->at(i);
-        label = TRAIN_LABELS->at(i);
 
-        data_array = env->NewFloatArray((jsize) data_vec.size());
-        env->SetFloatArrayRegion(data_array,0,(jsize) data_vec.size(),data_vec.data());
+    jintArray labels = env->NewIntArray(numOfTrainingData);
+    env->SetIntArrayRegion(labels, startIndex, endIndex, (const jint *) TRAIN_LABELS->data());
 
-        env->CallVoidMethod(dnn_model_object, setIndexTrainingDataID, (jint) (i-startIndex), (jint) label, data_array);
-
-        env->DeleteLocalRef(data_array);
+    jfloatArray data_array = env->NewFloatArray(numOfTrainingData*sizeOfData);
+    vec_t* data_vec = new vec_t;
+    std::vector<vec_t>::iterator td_itr = TRAIN_DATA->begin() + startIndex;
+    while(td_itr != (TRAIN_DATA->begin() + endIndex)){
+        data_vec->insert(data_vec->end(),td_itr->begin(), td_itr->end());
+        td_itr++;
     }
+    env->SetFloatArrayRegion(data_array,0,(jsize) data_vec->size(),data_vec->data());
+
+    env->CallVoidMethod(dnn_model_object, setIndexTrainingDataID, labels, data_array);
+
+    env->DeleteLocalRef(data_array);
+    env->DeleteLocalRef(labels);
+    delete data_vec;
 }
 
 extern "C"
