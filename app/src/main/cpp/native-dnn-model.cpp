@@ -118,10 +118,18 @@ std::vector<vec_t> *TEST_DATA;
 std::vector<label_t> *TEST_LABELS;
 int NUM_OF_LABELS;
 int NUM_OF_DATA;
+#ifdef _ANDROID_
+std::string MNIST_TRAINING_DATA_FILE_NAME = "/storage/emulated/0/MNIST/images-idx3-ubyte";
+std::string MNIST_TRAINING_LABELS_FILE_NAME = "/storage/emulated/0/MNIST/labels-idx1-ubyte";
+std::string MNIST_TEST_DATA_FILE_NAME = "/storage/emulated/0/MNIST/t10k-images-idx3-ubyte";
+std::string MNIST_TEST_LABELS_FILE_NAME = "/storage/emulated/0/MNIST/t10k-labels-idx1-ubyte";
+#else
 std::string MNIST_TRAINING_DATA_FILE_NAME = "train-images.idx3-ubyte";
 std::string MNIST_TRAINING_LABELS_FILE_NAME = "train-labels.idx1-ubyte";
 std::string MNIST_TEST_DATA_FILE_NAME = "t10k-images.idx3-ubyte";
 std::string MNIST_TEST_LABELS_FILE_NAME = "t10k-labels.idx1-ubyte";
+#endif
+
 
 /*
  * processing one time initialization:
@@ -163,7 +171,10 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
 extern "C"
 JNIEXPORT jbyteArray JNICALL
         Java_dnnUtil_dnnModel_DnnModel_jniCreateModel(JNIEnv *env, jobject instance){
-    //Todo: add content
+    //Todo: add contentstd::string MNIST_TRAINING_DATA_FILE_NAME = "/storage/emulated/0/MNIST/train-images.idx3-ubyte";
+ std::string MNIST_TRAINING_LABELS_FILE_NAME = "/storage/emulated/0/MNIST/train-labels.idx1-ubyte";
+ std::string MNIST_TEST_DATA_FILE_NAME = "/storage/emulated/0/MNIST/t10k-images.idx3-ubyte";
+ std::string MNIST_TEST_LABELS_FILE_NAME = "/storage/emulated/0/MNIST/t10k-labels.idx1-ubyte";
     if(! NN_INITIATED) {
         NN << convolutional_layer<relu>(32, 32, 23, 23, 1, 1)
            << fully_connected_layer<softmax>(100, 10);
@@ -263,7 +274,7 @@ Java_dnnUtil_dnnModel_DnnModel_jniGetTrainingData(JNIEnv *env, jobject instance,
     jmethodID initTrainingDataID = env->GetMethodID( dnn_model_class,
                                                      "initTrainingData", "(III)V");
     jmethodID setIndexTrainingDataID = env->GetMethodID( dnn_model_class,
-                                                         "setIndexTrainingData", "([I[F)V");
+                                                         "setTrainingData", "([I[F)V");
 
     int numOfTrainingData = endIndex - startIndex;
     int sizeOfData = TRAIN_DATA->at(0).size();
