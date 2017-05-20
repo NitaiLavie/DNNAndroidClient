@@ -63,7 +63,8 @@ public class ClientLogic {
                         Log.i(TAG, "Received a new dnn model");
                         Log.i(TAG, "Creating the model");
                         timer.start();
-                        mModel = new DnnModel((DnnModelDescriptor)inMessage.getContent());
+                        DnnModelDescriptor receivedDescriptor = (DnnModelDescriptor)inMessage.getContent();
+                        mModel = new DnnModel(receivedDescriptor, receivedDescriptor.getModelVersion());
                         timer.stop();
                         Log.i(TAG, "Model ready! ("+timer+")");
                         timer.start();

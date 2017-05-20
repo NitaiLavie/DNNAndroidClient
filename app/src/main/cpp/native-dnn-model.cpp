@@ -11,6 +11,7 @@
 
 #ifdef _ANDROID_
 #include <android/log.h>
+
 // Android log function wrappers
 static const char *kTAG = "native_dnn_model";
 #define LOGI(...) \
@@ -171,10 +172,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
 extern "C"
 JNIEXPORT jbyteArray JNICALL
         Java_dnnUtil_dnnModel_DnnModel_jniCreateModel(JNIEnv *env, jobject instance){
-    //Todo: add contentstd::string MNIST_TRAINING_DATA_FILE_NAME = "/storage/emulated/0/MNIST/train-images.idx3-ubyte";
- std::string MNIST_TRAINING_LABELS_FILE_NAME = "/storage/emulated/0/MNIST/train-labels.idx1-ubyte";
- std::string MNIST_TEST_DATA_FILE_NAME = "/storage/emulated/0/MNIST/t10k-images.idx3-ubyte";
- std::string MNIST_TEST_LABELS_FILE_NAME = "/storage/emulated/0/MNIST/t10k-labels.idx1-ubyte";
+    //Todo: add content
     if(! NN_INITIATED) {
         NN << convolutional_layer<relu>(32, 32, 23, 23, 1, 1)
            << fully_connected_layer<softmax>(100, 10);
@@ -272,18 +270,24 @@ Java_dnnUtil_dnnModel_DnnModel_jniGetTrainingData(JNIEnv *env, jobject instance,
     jclass dnn_model_class = env->GetObjectClass(dnn_model_object);
 
     jmethodID initTrainingDataID = env->GetMethodID( dnn_model_class,
-                                                     "initTrainingData", "(III)V");
-    jmethodID setIndexTrainingDataID = env->GetMethodID( dnn_model_class,
-                                                         "setTrainingData", "([I[F)V");
+                                                     "initTrainingData_callback", "(III)V");
+    jmethodID setTrainingDataID = env->GetMethodID( dnn_model_class,
+                                                         "setTrainingData_callback", "([I[F)V");
 
     int numOfTrainingData = endIndex - startIndex;
     int sizeOfData = TRAIN_DATA->at(0).size();
     env->CallVoidMethod(dnn_model_object,initTrainingDataID,(jint)NUM_OF_LABELS, (jint)numOfTrainingData, (jint)sizeOfData);
 
-    jintArray labels = env->NewIntArray(numOfTrainingData);
-    env->SetIntArrayRegion(labels, startIndex, endIndex, (const jint *) TRAIN_LABELS->data());
+    jintArray labels = env->NewIntArray((jsize) numOfTrainingData);
+    std::vector<int>* labels_vec = new std::vector<int>();
+    std::vector<label_t>::iterator tl_itr = TRAIN_LABELS->begin() + startIndex;
+    while(tl_itr !=(TRAIN_LABELS->begin() + endIndex)){
+        labels_vec->push_back(*tl_itr);
+        tl_itr++;
+    }
+    env->SetIntArrayRegion(labels, 0, labels_vec->size(), labels_vec->data());
 
-    jfloatArray data_array = env->NewFloatArray(numOfTrainingData*sizeOfData);
+    jfloatArray data_array = env->NewFloatArray((jsize) numOfTrainingData*sizeOfData);
     vec_t* data_vec = new vec_t;
     std::vector<vec_t>::iterator td_itr = TRAIN_DATA->begin() + startIndex;
     while(td_itr != (TRAIN_DATA->begin() + endIndex)){
@@ -292,10 +296,11 @@ Java_dnnUtil_dnnModel_DnnModel_jniGetTrainingData(JNIEnv *env, jobject instance,
     }
     env->SetFloatArrayRegion(data_array,0,(jsize) data_vec->size(),data_vec->data());
 
-    env->CallVoidMethod(dnn_model_object, setIndexTrainingDataID, labels, data_array);
+    env->CallVoidMethod(dnn_model_object, setTrainingDataID, labels, data_array);
 
     env->DeleteLocalRef(data_array);
     env->DeleteLocalRef(labels);
+    delete labels_vec;
     delete data_vec;
 }
 
@@ -338,11 +343,11 @@ Java_dnnUtil_dnnModel_DnnModel_jniGetWeightsData(JNIEnv *env, jobject instance) 
     jclass dnn_model_class = env->GetObjectClass(dnn_model_object);
 
     jmethodID initWeightsDataID = env->GetMethodID( dnn_model_class,
-                                                     "initWeightsData", "()V");
+                                                     "initWeightsData_callback", "()V");
     jmethodID setLayerWeightsID = env->GetMethodID( dnn_model_class,
-                                                         "setLayerWeights", "([FI)V");
+                                                         "setLayerWeights_callback", "([FI)V");
     jmethodID setLayerBiasesID = env->GetMethodID( dnn_model_class,
-                                                    "setLayerBiases", "([FI)V");
+                                                    "setLayerBiases_callback", "([FI)V");
 
     env->CallVoidMethod(dnn_model_object, initWeightsDataID);
 
@@ -367,17 +372,19 @@ Java_dnnUtil_dnnModel_DnnModel_jniGetWeightsData(JNIEnv *env, jobject instance) 
 }
 
 extern "C"
-JNIEXPORT void JNICALL
+JNIEXPORT jbyteArray JNICALL
 Java_dnnUtil_dnnModel_DnnModel_jniSetWeightsData(JNIEnv *env, jobject instance) {
     jobject dnn_model_object = instance;
     jclass dnn_model_class = env->GetObjectClass(dnn_model_object);
 
     jmethodID getLayerWeightsDataID = env->GetMethodID( dnn_model_class,
-                                                    "getLayerWeightsData", "(I)V");
+                                                    "getLayerWeightsData_callback", "(I)V");
     for(int i = 0; i < NN.depth(); i++){
         env->CallVoidMethod(dnn_model_object, getLayerWeightsDataID, (jint) i);
     }
 
+    BinaryString<NET_TYPE> binaryString = to_binary_string(NN);
+    return string2jbyteArray(env, binaryString.str);
 }
 
 extern "C"

@@ -8,6 +8,11 @@ import com.dnnproject.android.dnnandroidclient.tcpclient.TcpClient;
 
 import java.io.IOException;
 
+import dnnUtil.dnnModel.DnnModel;
+import dnnUtil.dnnModel.DnnModelParameters;
+import dnnUtil.dnnModel.DnnTrainingData;
+import dnnUtil.dnnModel.DnnTrainingDescriptor;
+
 /**
  * Created by nitai on 01/04/17.
  */
