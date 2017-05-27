@@ -119,6 +119,7 @@ std::vector<vec_t> *TEST_DATA;
 std::vector<label_t> *TEST_LABELS;
 int NUM_OF_LABELS;
 int NUM_OF_DATA;
+int MINIBATCH_NUM = 50;
 #ifdef _ANDROID_
 std::string MNIST_TRAINING_DATA_FILE_NAME = "/storage/emulated/0/MNIST/images-idx3-ubyte";
 std::string MNIST_TRAINING_LABELS_FILE_NAME = "/storage/emulated/0/MNIST/labels-idx1-ubyte";
@@ -205,7 +206,7 @@ extern "C"
 JNIEXPORT jbyteArray JNICALL
 Java_dnnUtil_dnnModel_DnnModel_jniTrainModel(JNIEnv *env, jobject instance){
 
-    int minibatch_size = NUM_OF_DATA;
+    int minibatch_size = MINIBATCH_NUM;
     int num_epochs = 1;
     int minibatchCount = 0;
 

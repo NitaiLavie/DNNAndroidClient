@@ -87,6 +87,7 @@ public class TcpClient implements DnnMessageTransceiver{
                 try {
                     DnnMessage message = mOutputMessageQueue.take();
                     mOutputStream.writeObject(message);
+                    mOutputStream.reset();
                     mOutputStream.flush();
                 } catch (InterruptedException e) {
                     Log.e(TAG, "mOutputListener: output queue take interupt");

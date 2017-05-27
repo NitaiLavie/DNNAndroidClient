@@ -7,12 +7,13 @@ import com.dnnproject.android.dnnandroidclient.tcpclient.DnnMessageTransceiver;
 import dnnUtil.dnnMessage.DnnHelloMessage;
 import dnnUtil.dnnMessage.DnnMessage;
 import dnnUtil.dnnMessage.DnnReadyMessage;
+import dnnUtil.dnnMessage.DnnStatisticsMessage;
 import dnnUtil.dnnMessage.DnnWeightsMessage;
 import dnnUtil.dnnModel.DnnModel;
 import dnnUtil.dnnModel.DnnModelDescriptor;
 import dnnUtil.dnnModel.DnnTrainingData;
-import dnnUtil.dnnModel.DnnTrainingPackage;
 import dnnUtil.dnnModel.DnnWeightsData;
+import dnnUtil.dnnStatistics.DnnStatistics;
 import dnnUtil.dnnTimer.DnnTimer;
 
 /**
@@ -27,20 +28,24 @@ public class ClientLogic {
     private final String mAndroidId;
     private boolean mRun;
     DnnModel mModel;
+    DnnStatistics mStats;
 
     public ClientLogic(Thread thread, DnnMessageTransceiver messageTransceiver, String androidId){
         mThread = thread;
         mMessageTransceiver = messageTransceiver;
         mAndroidId = androidId;
         mRun = false;
+        mStats = new DnnStatistics();
+        mStats.setClientName(mAndroidId);
+        mStats.setDeviceName(android.os.Build.MODEL);
     }
 
     public void run() {
         // this is where all client runnign and messaging logic runs
 
         DnnTimer timer = new DnnTimer(); //for timing
-
         mRun = true;
+
         try {
             // sending first hello message to server
             timer.start();
@@ -66,7 +71,9 @@ public class ClientLogic {
                         DnnModelDescriptor receivedDescriptor = (DnnModelDescriptor)inMessage.getContent();
                         mModel = new DnnModel(receivedDescriptor, receivedDescriptor.getModelVersion());
                         timer.stop();
+                        mStats.setModelNumber(mModel.getModelVersion());
                         Log.i(TAG, "Model ready! ("+timer+")");
+                        Log.i(TAG, "Model number: " + mModel.getModelVersion());
                         timer.start();
                         mMessageTransceiver.sendMessage(new DnnReadyMessage(mAndroidId,"Ready"));
                         timer.stop();
@@ -76,6 +83,8 @@ public class ClientLogic {
                     case TRAININGDATA:
                         Log.i(TAG, "Received new training data");
                         Log.i(TAG, "Setting received training data to created DnnModel");
+                        mStats.setStartTrainingTime(System.currentTimeMillis());
+                        mStats.setNumberOfTrainedEpochs(1);
                         timer.start();
                         mModel.setTrainingData((DnnTrainingData)inMessage.getContent());
                         timer.stop();
@@ -84,11 +93,16 @@ public class ClientLogic {
                         timer.start();
                         mModel.trainModel();
                         timer.stop();
+                        mStats.setFinishTrainingTime(System.currentTimeMillis());
                         Log.i(TAG, "Finished training! ("+timer+")");
                         timer.start();
                         mMessageTransceiver.sendMessage(new DnnWeightsMessage(mAndroidId, mModel.getWeightsData()));
                         timer.stop();
                         Log.i(TAG, "sent new weights to the server ("+timer+")");
+                        timer.start();
+                        mMessageTransceiver.sendMessage(new DnnStatisticsMessage(mAndroidId, mStats));
+                        timer.stop();
+                        Log.i(TAG, "send latest statistics to the server ("+timer+")");
 
                         break;
 
@@ -98,7 +112,10 @@ public class ClientLogic {
                         timer.start();
                         mModel.setWeightsData((DnnWeightsData)inMessage.getContent());
                         timer.stop();
+                        Log.i(TAG, "set new weights ("+timer+")");
+                        timer.start();
                         mMessageTransceiver.sendMessage(new DnnReadyMessage(mAndroidId,"Ready"));
+                        timer.stop();
                         Log.i(TAG, "sent ready message ("+timer+")");
                         break;
 
