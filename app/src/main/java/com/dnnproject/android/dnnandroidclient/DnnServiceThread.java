@@ -4,8 +4,10 @@ import android.os.PowerManager;
 import android.util.Log;
 
 import com.dnnproject.android.dnnandroidclient.clientlogic.ClientLogic;
+import com.dnnproject.android.dnnandroidclient.downloader.DnnDataDownloader;
 import com.dnnproject.android.dnnandroidclient.tcpclient.TcpClient;
 
+import java.io.File;
 import java.io.IOException;
 
 /**
@@ -18,12 +20,14 @@ public class DnnServiceThread extends Thread {
     private final String mDnnServerIP;
     private final String mAndroidId;
     private final PowerManager.WakeLock mWakeLock;
+    private final File mFilesDir;
 
-    public DnnServiceThread(String dnnServerIP, PowerManager.WakeLock wakeLock, String androidId){
+    public DnnServiceThread(String dnnServerIP, PowerManager.WakeLock wakeLock, String androidId, File filesDir){
         super();
         mDnnServerIP = dnnServerIP;
         mAndroidId = androidId;
         mWakeLock = wakeLock;
+        mFilesDir = filesDir;
     }
 
     @Override
@@ -35,7 +39,10 @@ public class DnnServiceThread extends Thread {
 
         // creating the tcp client
         TcpClient tcpClient = new TcpClient(mDnnServerIP);
-        ClientLogic clientLogic = new ClientLogic(this, tcpClient, mAndroidId);
+        DnnDataDownloader dataDownloader = new DnnDataDownloader(mFilesDir);
+        ClientLogic clientLogic = new ClientLogic(this, tcpClient, dataDownloader, mAndroidId);
+
+        //DEBUG
 
         try {
             tcpClient.start();

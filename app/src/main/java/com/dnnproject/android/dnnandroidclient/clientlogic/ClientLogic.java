@@ -2,6 +2,7 @@ package com.dnnproject.android.dnnandroidclient.clientlogic;
 
 import android.util.Log;
 
+import com.dnnproject.android.dnnandroidclient.downloader.DnnDataDownloader;
 import com.dnnproject.android.dnnandroidclient.tcpclient.DnnMessageTransceiver;
 
 import dnnUtil.dnnMessage.DnnHelloMessage;
@@ -24,15 +25,17 @@ public class ClientLogic {
     private static final String TAG = "ClientLogic";
 
     private final DnnMessageTransceiver mMessageTransceiver;
+    private final DnnDataDownloader mDataDownloader;
     private final Thread mThread;
     private final String mAndroidId;
     private boolean mRun;
     DnnModel mModel;
     DnnStatistics mStats;
 
-    public ClientLogic(Thread thread, DnnMessageTransceiver messageTransceiver, String androidId){
+    public ClientLogic(Thread thread, DnnMessageTransceiver messageTransceiver, DnnDataDownloader dataDownloader, String androidId){
         mThread = thread;
         mMessageTransceiver = messageTransceiver;
+        mDataDownloader = dataDownloader;
         mAndroidId = androidId;
         mRun = false;
         mStats = new DnnStatistics();

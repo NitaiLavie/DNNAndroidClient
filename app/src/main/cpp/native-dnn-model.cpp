@@ -110,13 +110,11 @@ typedef struct _ModelContext {
 
 // Global variables:
 ModelContext MODEL_CONTEXT;
-training_set TRAINING_SET = MNIST;
+training_set TRAINING_SET = MNIST; //Todo: change this, hard coding things is a bad practice
 bool NN_INITIATED;
 network<NET_TYPE> NN;
-std::vector<vec_t> *TRAIN_DATA;
-std::vector<label_t> *TRAIN_LABELS;
-std::vector<vec_t> *TEST_DATA;
-std::vector<label_t> *TEST_LABELS;
+std::vector<vec_t> *DNN_DATA;
+std::vector<label_t> *DNN_LABELS;
 int NUM_OF_LABELS;
 int NUM_OF_DATA;
 int MINIBATCH_NUM = 50;
@@ -224,7 +222,7 @@ Java_dnnUtil_dnnModel_DnnModel_jniTrainModel(JNIEnv *env, jobject instance){
 
     // training
 
-    NN.train<mse>(opt, *TRAIN_DATA, *TRAIN_LABELS, minibatch_size, num_epochs,
+    NN.train<mse>(opt, *DNN_DATA, *DNN_LABELS, minibatch_size, num_epochs,
                   on_enumerate_minibatch, on_enumerate_epoch);
 
 
@@ -234,21 +232,26 @@ Java_dnnUtil_dnnModel_DnnModel_jniTrainModel(JNIEnv *env, jobject instance){
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_dnnUtil_dnnModel_DnnModel_jniLoadTrainingData(JNIEnv *env, jobject instance) {
+Java_dnnUtil_dnnModel_DnnModel_jniLoadTrainingData(JNIEnv *env, jobject instance, jstring jdataFile,
+                                                   jstring jlabelsFile, jstring jdataType) {
+    const char *df = env->GetStringUTFChars(jdataFile, JNI_FALSE);
+    const char *lf = env->GetStringUTFChars(jlabelsFile, JNI_FALSE);
+    const char *dt = env->GetStringUTFChars(jdataType, JNI_FALSE);
+    std::string data_file(df);
+    std::string labels_file(lf);
+    std::string data_type(dt);
+    env->ReleaseStringUTFChars(jdataFile, df);
+    env->ReleaseStringUTFChars(jdataFile, lf);
+    env->ReleaseStringUTFChars(jdataFile, dt);
 
-    TRAIN_DATA = new std::vector<vec_t>();
-    TRAIN_LABELS = new std::vector<label_t>();
-    TEST_DATA = new std::vector<vec_t>();
-    TEST_LABELS = new std::vector<label_t>();
-
+    DNN_DATA = new std::vector<vec_t>();
+    DNN_LABELS = new std::vector<label_t>();
 
     switch(TRAINING_SET){
         case MNIST:
             NUM_OF_LABELS = 10;
-            parse_mnist_labels(MNIST_TRAINING_LABELS_FILE_NAME, TRAIN_LABELS);
-            parse_mnist_images(MNIST_TRAINING_DATA_FILE_NAME, TRAIN_DATA, -1.0,1.0, 2, 2);
-            parse_mnist_labels(MNIST_TEST_LABELS_FILE_NAME, TEST_LABELS);
-            parse_mnist_images(MNIST_TEST_DATA_FILE_NAME, TEST_DATA, -1.0,1.0, 2, 2);
+            parse_mnist_labels(labels_file, DNN_LABELS);
+            parse_mnist_images(data_file, DNN_DATA, -1.0,1.0, 2, 2);
             break;
         case CIFAR10:
             NUM_OF_LABELS = 10;
@@ -258,7 +261,7 @@ Java_dnnUtil_dnnModel_DnnModel_jniLoadTrainingData(JNIEnv *env, jobject instance
             NUM_OF_LABELS = 10;
             break;
     }
-    NUM_OF_DATA = (int) TRAIN_LABELS->size();
+    NUM_OF_DATA = (int) DNN_LABELS->size();
 
     return (jint) NUM_OF_DATA;
 }
@@ -276,13 +279,13 @@ Java_dnnUtil_dnnModel_DnnModel_jniGetTrainingData(JNIEnv *env, jobject instance,
                                                          "setTrainingData_callback", "([I[F)V");
 
     int numOfTrainingData = endIndex - startIndex;
-    int sizeOfData = TRAIN_DATA->at(0).size();
+    int sizeOfData = DNN_DATA->at(0).size();
     env->CallVoidMethod(dnn_model_object,initTrainingDataID,(jint)NUM_OF_LABELS, (jint)numOfTrainingData, (jint)sizeOfData);
 
     jintArray labels = env->NewIntArray((jsize) numOfTrainingData);
     std::vector<int>* labels_vec = new std::vector<int>();
-    std::vector<label_t>::iterator tl_itr = TRAIN_LABELS->begin() + startIndex;
-    while(tl_itr !=(TRAIN_LABELS->begin() + endIndex)){
+    std::vector<label_t>::iterator tl_itr = DNN_LABELS->begin() + startIndex;
+    while(tl_itr !=(DNN_LABELS->begin() + endIndex)){
         labels_vec->push_back(*tl_itr);
         tl_itr++;
     }
@@ -290,8 +293,8 @@ Java_dnnUtil_dnnModel_DnnModel_jniGetTrainingData(JNIEnv *env, jobject instance,
 
     jfloatArray data_array = env->NewFloatArray((jsize) numOfTrainingData*sizeOfData);
     vec_t* data_vec = new vec_t;
-    std::vector<vec_t>::iterator td_itr = TRAIN_DATA->begin() + startIndex;
-    while(td_itr != (TRAIN_DATA->begin() + endIndex)){
+    std::vector<vec_t>::iterator td_itr = DNN_DATA->begin() + startIndex;
+    while(td_itr != (DNN_DATA->begin() + endIndex)){
         data_vec->insert(data_vec->end(),td_itr->begin(), td_itr->end());
         td_itr++;
     }
@@ -313,22 +316,22 @@ Java_dnnUtil_dnnModel_DnnModel_jniSetTrainingData(JNIEnv *env, jobject instance,
     NUM_OF_LABELS = numOfLabels;
     NUM_OF_DATA = numOfData;
 
-    if(TRAIN_DATA != NULL) delete TRAIN_DATA;
-    if(TRAIN_LABELS != NULL) delete TRAIN_LABELS;
+    if(DNN_DATA != NULL) delete DNN_DATA;
+    if(DNN_LABELS != NULL) delete DNN_LABELS;
 
-    TRAIN_DATA = new std::vector<vec_t>();
-    TRAIN_LABELS = new std::vector<label_t>();
+    DNN_DATA = new std::vector<vec_t>();
+    DNN_LABELS = new std::vector<label_t>();
 
     jfloat *train_data = env->GetFloatArrayElements(data, 0);
     jint *train_labels = env->GetIntArrayElements(labels, 0);
 
     for( int i = 0; i < NUM_OF_DATA; i++){
-        TRAIN_LABELS->push_back((int) train_labels[i]);
+        DNN_LABELS->push_back((int) train_labels[i]);
         vec_t *vec =  new vec_t();
         for(int j = 0; j<dataSize; j++){
             vec->push_back((float) train_data[i*dataSize + j]);
         }
-        TRAIN_DATA->push_back(*vec);
+        DNN_DATA->push_back(*vec);
         delete vec;
     }
 
