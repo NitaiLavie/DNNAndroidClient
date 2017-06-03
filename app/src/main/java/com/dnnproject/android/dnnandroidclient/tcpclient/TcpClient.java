@@ -66,11 +66,16 @@ public class TcpClient implements DnnMessageTransceiver{
                     }
 
                 } catch (NotDnnMessageException e) {
-                    Log.e(TAG,e.getMessage());
+                    String msg = e.getMessage();
+                    if(msg != null) Log.e(TAG, msg);
                     e.printStackTrace();
                 } catch (ClassNotFoundException e) {
+                    String msg = e.getMessage();
+                    if(msg != null) Log.e(TAG, msg);
                     e.printStackTrace();
                 } catch (IOException e) {
+                    String msg = e.getMessage();
+                    if(msg != null) Log.e(TAG, msg);
                     e.printStackTrace();
                 }
             }

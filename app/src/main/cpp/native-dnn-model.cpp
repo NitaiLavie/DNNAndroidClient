@@ -173,8 +173,9 @@ JNIEXPORT jbyteArray JNICALL
         Java_dnnUtil_dnnModel_DnnModel_jniCreateModel(JNIEnv *env, jobject instance){
     //Todo: add content
     if(! NN_INITIATED) {
-        NN << convolutional_layer<relu>(32, 32, 23, 23, 1, 1)
-           << fully_connected_layer<softmax>(100, 10);
+        NN << fully_connected_layer<relu>(32 * 32,500)
+           << fully_connected_layer<relu>(500,150)
+           << fully_connected_layer<softmax>(150, 10);
         NN_INITIATED = true;
     }
     BinaryString<NET_TYPE> binaryString = to_binary_string(NN);
@@ -201,7 +202,7 @@ Java_dnnUtil_dnnModel_DnnModel_jniLoadModel(JNIEnv *env, jobject instance, jbyte
 }
 
 extern "C"
-JNIEXPORT jbyteArray JNICALL
+JNIEXPORT void JNICALL
 Java_dnnUtil_dnnModel_DnnModel_jniTrainModel(JNIEnv *env, jobject instance){
 
     int minibatch_size = MINIBATCH_NUM;
@@ -224,19 +225,24 @@ Java_dnnUtil_dnnModel_DnnModel_jniTrainModel(JNIEnv *env, jobject instance){
 
     NN.train<mse>(opt, *DNN_DATA, *DNN_LABELS, minibatch_size, num_epochs,
                   on_enumerate_minibatch, on_enumerate_epoch);
+}
 
+extern "C"
+JNIEXPORT jfloat JNICALL
+Java_dnnUtil_dnnModel_DnnModel_jniValidateModel(JNIEnv *env, jobject instance) {
 
+    tiny_dnn::result result = NN.test(*DNN_DATA, *DNN_LABELS);
+    return (jfloat) result.accuracy();
 
-    return NULL;
 }
 
 extern "C"
 JNIEXPORT jint JNICALL
 Java_dnnUtil_dnnModel_DnnModel_jniLoadTrainingData(JNIEnv *env, jobject instance, jstring jdataFile,
-                                                   jstring jlabelsFile, jstring jdataType) {
+                                                   jstring jlabelsFile, jstring jdataSet) {
     const char *df = env->GetStringUTFChars(jdataFile, JNI_FALSE);
     const char *lf = env->GetStringUTFChars(jlabelsFile, JNI_FALSE);
-    const char *dt = env->GetStringUTFChars(jdataType, JNI_FALSE);
+    const char *dt = env->GetStringUTFChars(jdataSet, JNI_FALSE);
     std::string data_file(df);
     std::string labels_file(lf);
     std::string data_type(dt);
