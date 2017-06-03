@@ -173,9 +173,8 @@ JNIEXPORT jbyteArray JNICALL
         Java_dnnUtil_dnnModel_DnnModel_jniCreateModel(JNIEnv *env, jobject instance){
     //Todo: add content
     if(! NN_INITIATED) {
-        NN << fully_connected_layer<relu>(32 * 32,500)
-           << fully_connected_layer<relu>(500,150)
-           << fully_connected_layer<softmax>(150, 10);
+        NN << fully_connected_layer<relu>(28 * 28,300)
+           << fully_connected_layer<softmax>(300, 10);
         NN_INITIATED = true;
     }
     BinaryString<NET_TYPE> binaryString = to_binary_string(NN);
@@ -257,7 +256,7 @@ Java_dnnUtil_dnnModel_DnnModel_jniLoadTrainingData(JNIEnv *env, jobject instance
         case MNIST:
             NUM_OF_LABELS = 10;
             parse_mnist_labels(labels_file, DNN_LABELS);
-            parse_mnist_images(data_file, DNN_DATA, -1.0,1.0, 2, 2);
+            parse_mnist_images(data_file, DNN_DATA, -1.0,1.0, 0, 0);
             break;
         case CIFAR10:
             NUM_OF_LABELS = 10;
