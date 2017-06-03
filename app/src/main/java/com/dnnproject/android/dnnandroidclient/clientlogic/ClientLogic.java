@@ -17,6 +17,7 @@ import dnnUtil.dnnModel.DnnBundle;
 import dnnUtil.dnnModel.DnnIndex;
 import dnnUtil.dnnModel.DnnModel;
 import dnnUtil.dnnModel.DnnModelDescriptor;
+import dnnUtil.dnnModel.DnnModelParameters;
 import dnnUtil.dnnModel.DnnTrainingData;
 import dnnUtil.dnnModel.DnnWeightsData;
 import dnnUtil.dnnStatistics.DnnStatistics;

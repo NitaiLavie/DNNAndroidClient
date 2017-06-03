@@ -365,17 +365,20 @@ Java_dnnUtil_dnnModel_DnnModel_jniGetWeightsData(JNIEnv *env, jobject instance) 
     for(int i = 0; i < NN.depth(); i++){
         // 0 = weights, 1 = biases
         weights = NN[i]->weights();
+        if(weights.size() > 0) {
+            weights_array = env->NewFloatArray((jsize) weights.at(0)->size());
+            biases_array = env->NewFloatArray((jsize) weights.at(1)->size());
+            env->SetFloatArrayRegion(weights_array, 0, (jsize) weights.at(0)->size(),
+                                     weights.at(0)->data());
+            env->SetFloatArrayRegion(biases_array, 0, (jsize) weights.at(1)->size(),
+                                     weights.at(1)->data());
 
-        weights_array = env->NewFloatArray((jsize) weights.at(0)->size());
-        biases_array = env->NewFloatArray((jsize) weights.at(1)->size());
-        env->SetFloatArrayRegion(weights_array,0,(jsize) weights.at(0)->size(),weights.at(0)->data());
-        env->SetFloatArrayRegion(biases_array,0,(jsize) weights.at(1)->size(),weights.at(1)->data());
+            env->CallVoidMethod(dnn_model_object, setLayerWeightsID, weights_array, (jint) i);
+            env->CallVoidMethod(dnn_model_object, setLayerBiasesID, biases_array, (jint) i);
 
-        env->CallVoidMethod(dnn_model_object, setLayerWeightsID, weights_array, (jint) i);
-        env->CallVoidMethod(dnn_model_object, setLayerBiasesID, biases_array, (jint) i);
-
-        env->DeleteLocalRef(weights_array);
-        env->DeleteLocalRef(biases_array);
+            env->DeleteLocalRef(weights_array);
+            env->DeleteLocalRef(biases_array);
+        }
     }
 }
 
@@ -388,7 +391,9 @@ Java_dnnUtil_dnnModel_DnnModel_jniSetWeightsData(JNIEnv *env, jobject instance) 
     jmethodID getLayerWeightsDataID = env->GetMethodID( dnn_model_class,
                                                     "getLayerWeightsData_callback", "(I)V");
     for(int i = 0; i < NN.depth(); i++){
-        env->CallVoidMethod(dnn_model_object, getLayerWeightsDataID, (jint) i);
+        if(NN[i]->weights().size() > 0) {
+            env->CallVoidMethod(dnn_model_object, getLayerWeightsDataID, (jint) i);
+        }
     }
 
     BinaryString<NET_TYPE> binaryString = to_binary_string(NN);

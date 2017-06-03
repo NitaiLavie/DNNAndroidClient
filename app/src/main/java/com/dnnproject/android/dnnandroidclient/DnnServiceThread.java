@@ -10,6 +10,10 @@ import com.dnnproject.android.dnnandroidclient.tcpclient.TcpClient;
 import java.io.File;
 import java.io.IOException;
 
+import dnnUtil.dnnModel.DnnModel;
+import dnnUtil.dnnModel.DnnModelDescriptor;
+import dnnUtil.dnnModel.DnnModelParameters;
+
 /**
  * Created by nitai on 01/04/17.
  */
@@ -41,8 +45,6 @@ public class DnnServiceThread extends Thread {
         TcpClient tcpClient = new TcpClient(mDnnServerIP);
         DnnDataDownloader dataDownloader = new DnnDataDownloader(mFilesDir);
         ClientLogic clientLogic = new ClientLogic(this, tcpClient, dataDownloader, mAndroidId);
-
-        //DEBUG
 
         try {
             tcpClient.start();
