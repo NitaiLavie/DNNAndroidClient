@@ -5,8 +5,6 @@
 #include <pthread.h>
 #include <assert.h>
 
-#include "boost/timer.hpp"
-#include "boost/progress.hpp"
 #include "tiny_dnn/tiny_dnn.h"
 
 #ifdef _ANDROID_
@@ -173,8 +171,8 @@ JNIEXPORT jbyteArray JNICALL
         Java_dnnUtil_dnnModel_DnnModel_jniCreateModel(JNIEnv *env, jobject instance){
     //Todo: add content
     if(! NN_INITIATED) {
-        NN << fully_connected_layer<relu>(28 * 28,300)
-           << fully_connected_layer<softmax>(300, 10);
+        NN << fully_connected_layer(28 * 28,300) << relu()
+           << fully_connected_layer(300, 10) << softmax();
         NN_INITIATED = true;
     }
     BinaryString<NET_TYPE> binaryString = to_binary_string(NN);
@@ -222,8 +220,9 @@ Java_dnnUtil_dnnModel_DnnModel_jniTrainModel(JNIEnv *env, jobject instance){
 
     // training
 
-    NN.train<mse>(opt, *DNN_DATA, *DNN_LABELS, minibatch_size, num_epochs,
-                  on_enumerate_minibatch, on_enumerate_epoch);
+//    NN.train<mse>(opt, *DNN_DATA, *DNN_LABELS, minibatch_size, num_epochs,
+//                  on_enumerate_minibatch, on_enumerate_epoch);
+    NN.train<mse>(opt, *DNN_DATA, *DNN_LABELS, minibatch_size, num_epochs);
 }
 
 extern "C"

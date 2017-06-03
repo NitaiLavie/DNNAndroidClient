@@ -26,7 +26,6 @@ add_library( # Sets the name of the library.
 # Todo: change this to be an in project lib that is a git submodul
 
 include_directories(./src/main/cpp/tiny-dnn)
-include_directories(/home/nitai/boost_headers)
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by

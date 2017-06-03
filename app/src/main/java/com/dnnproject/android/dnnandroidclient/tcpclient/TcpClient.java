@@ -77,6 +77,8 @@ public class TcpClient implements DnnMessageTransceiver{
                     String msg = e.getMessage();
                     if(msg != null) Log.e(TAG, msg);
                     e.printStackTrace();
+                    //Todo: this is temporary! need to pass this exception on (probably server disconnected)
+                    mRun = false;
                 }
             }
         }
@@ -98,7 +100,11 @@ public class TcpClient implements DnnMessageTransceiver{
                     Log.e(TAG, "mOutputListener: output queue take interupt");
                     e.printStackTrace();
                 } catch (IOException e) {
+                    String msg = e.getMessage();
+                    if(msg != null) Log.e(TAG, msg);
                     e.printStackTrace();
+                    //Todo: this is temporary! need to pass this exception on (probably server disconnected)
+                    mRun = false;
                 }
             }
 
