@@ -204,12 +204,13 @@ JNIEXPORT void JNICALL
 Java_dnnUtil_dnnModel_DnnModel_jniTrainModel(JNIEnv *env, jobject instance){
 
     int minibatch_size = MINIBATCH_NUM;
-    int learning_rate = LEARNING_RATE;
+    float learning_rate = LEARNING_RATE;
     int num_epochs = 1;
     int minibatchCount = 0;
 
     adagrad opt;
-    opt.alpha *= std::sqrt(minibatch_size) * learning_rate;
+    // default alpha is 0.01
+    //opt.alpha *= std::sqrt(minibatch_size) * learning_rate;
 
     // create callback
     auto on_enumerate_epoch = [&](){
