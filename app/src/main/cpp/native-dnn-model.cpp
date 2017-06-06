@@ -171,7 +171,7 @@ JNIEXPORT jbyteArray JNICALL
         Java_dnnUtil_dnnModel_DnnModel_jniCreateModel(JNIEnv *env, jobject instance){
     //Todo: add content
     if(! NN_INITIATED) {
-        NN << fully_connected_layer(28 * 28,300) << relu()
+        NN << fully_connected_layer(28 * 28,300) << tanh_layer()
            << fully_connected_layer(300, 10) << softmax();
         NN_INITIATED = true;
     }
