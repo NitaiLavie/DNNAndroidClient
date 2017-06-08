@@ -115,8 +115,8 @@ std::vector<vec_t> *DNN_DATA;
 std::vector<label_t> *DNN_LABELS;
 int NUM_OF_LABELS;
 int NUM_OF_DATA;
-int MINIBATCH_NUM = 50;
-float LEARNING_RATE = 0.05;
+int MINIBATCH_NUM = 10;
+float LEARNING_RATE = 1;
 #ifdef _ANDROID_
 std::string MNIST_TRAINING_DATA_FILE_NAME = "/storage/emulated/0/MNIST/images-idx3-ubyte";
 std::string MNIST_TRAINING_LABELS_FILE_NAME = "/storage/emulated/0/MNIST/labels-idx1-ubyte";
