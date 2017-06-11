@@ -7,6 +7,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.Environment;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.provider.Settings;
@@ -41,6 +42,9 @@ public class DnnService extends Service {
             String androidId = Settings.Secure.getString(getApplicationContext().getContentResolver(),
                     Settings.Secure.ANDROID_ID);
             File filesDir = getApplicationContext().getFilesDir();
+//            //DEBUG
+//            File filesDir = Environment.getExternalStorageDirectory();
+//            //DEBUG
 
             // getting a PartialWakeLock so this service threads will run even when the device is locked
             PowerManager mgr = (PowerManager)getApplicationContext().getSystemService(Context.POWER_SERVICE);

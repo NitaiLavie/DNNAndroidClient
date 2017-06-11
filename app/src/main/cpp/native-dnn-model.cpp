@@ -116,7 +116,7 @@ std::vector<label_t> *DNN_LABELS;
 int NUM_OF_LABELS;
 int NUM_OF_DATA;
 int MINIBATCH_NUM = 10;
-float LEARNING_RATE = 1;
+float LEARNING_RATE = 0.5;
 #ifdef _ANDROID_
 std::string MNIST_TRAINING_DATA_FILE_NAME = "/storage/emulated/0/MNIST/images-idx3-ubyte";
 std::string MNIST_TRAINING_LABELS_FILE_NAME = "/storage/emulated/0/MNIST/labels-idx1-ubyte";
@@ -210,7 +210,7 @@ Java_dnnUtil_dnnModel_DnnModel_jniTrainModel(JNIEnv *env, jobject instance){
 
     adagrad opt;
     // default alpha is 0.01
-    //opt.alpha *= std::sqrt(minibatch_size) * learning_rate;
+    opt.alpha *= learning_rate /*std::sqrt(minibatch_size)*/;
 
     // create callback
     auto on_enumerate_epoch = [&](){

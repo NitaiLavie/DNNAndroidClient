@@ -40,7 +40,33 @@ public class DnnServiceThread extends Thread {
 
         // locking the partial wake lock
         mWakeLock.acquire();
-
+        //DEBUG
+//        DnnDataDownloader d = new DnnDataDownloader(mFilesDir);
+//        DnnModel model = new DnnModel(new DnnModelParameters());
+//        String[] paths;
+//        for(int i = 1; i<10; i++){
+//            try{
+//                paths = d.download("mnist", "train", 1000, i);
+//                model.loadTrainingData(paths[0], paths[1], "mnist");
+//                Log.d(TAG, "run: training batch number "+i);
+//                model.trainModel();
+//            }catch(Exception e){
+//                e.printStackTrace();
+//            }
+//        }
+//        Float accuracy = new Float(0);
+//        try{
+//            paths = d.download("mnist", "validate", 10000, 1);
+//            model.loadTrainingData(paths[0], paths[1], "mnist");
+//            Log.d(TAG, "run: validating the model!");
+//            accuracy = model.validateModel().getAccuracy();
+//        }catch(Exception e){
+//            e.printStackTrace();
+//        }
+//        Log.d(TAG, "run: accuracy after epoch = "+accuracy);
+//        mWakeLock.release();
+//        if(true) return;
+        //DEBUG
         // creating the tcp client
         TcpClient tcpClient = new TcpClient(mDnnServerIP);
         DnnDataDownloader dataDownloader = new DnnDataDownloader(mFilesDir);

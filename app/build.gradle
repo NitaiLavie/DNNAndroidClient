@@ -22,7 +22,7 @@ android {
                             '-DANDROID_TOOLCHAIN=clang',
                             '-DANDROID_CPP_FEATURES=rtti exceptions',
                             '-DANDROID_STL=c++_static'
-                cppFlags "-std=c++11 -frtti -fexceptions"
+                cppFlags "-std=c++11 -frtti -fexceptions -fPIC"
             }
         }
     }
@@ -46,7 +46,7 @@ dependencies {
     })
     compile 'com.android.support:appcompat-v7:25.3.1'
     compile 'com.android.support.constraint:constraint-layout:1.0.0-alpha7'
-    compile 'org.apache.commons:commons-lang3:3.5'
+    compile 'org.apache.commons:commons-io:1.3.2'
     testCompile 'junit:junit:4.12'
 }
 

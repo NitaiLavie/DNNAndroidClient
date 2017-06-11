@@ -2,6 +2,8 @@ package com.dnnproject.android.dnnandroidclient.downloader;
 
 import android.util.Log;
 
+import org.apache.commons.io.FileUtils;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.net.URL;
@@ -44,27 +46,33 @@ public class DnnDataDownloader {
                 throw new Exception("illegal dataSet");
             }
 
-            ReadableByteChannel rbc;
-            FileOutputStream fileOut;
+//            ReadableByteChannel rbc;
+//            FileOutputStream fileOut;
 
             if(!dataPath.exists()) {
+                FileUtils.copyURLToFile(dataURL, dataPath);
                 // download data
-                rbc = Channels.newChannel(dataURL.openStream());
-                fileOut = new FileOutputStream(dataPath);
-                fileOut.getChannel().transferFrom(rbc, 0, 1<<24);
-                fileOut.flush();
-                fileOut.close();
-                rbc.close();
+//                rbc = Channels.newChannel(dataURL.openStream());
+//                fileOut = new FileOutputStream(dataPath);
+//                long numBytesRead = 0;
+//                do {
+//                    numBytesRead = fileOut.getChannel().transferFrom(rbc, numBytesRead, 1 << 24);
+//                    fileOut.flush();
+//                } while (numBytesRead != 0);
+//                fileOut.close();
+//                rbc.close();
+
             } else {
                 Log.i(TAG, "download: file "+dataPath+" already exists. no need to download");
             }
             if(!labelsPath.exists()) {
-                rbc = Channels.newChannel(labelsURL.openStream());
-                fileOut = new FileOutputStream(labelsPath);
-                fileOut.getChannel().transferFrom(rbc, 0, 1<<24);
-                fileOut.flush();
-                fileOut.close();
-                rbc.close();
+                FileUtils.copyURLToFile(labelsURL, labelsPath);
+//                rbc = Channels.newChannel(labelsURL.openStream());
+//                fileOut = new FileOutputStream(labelsPath);
+//                fileOut.getChannel().transferFrom(rbc, 0, 1<<24);
+//                fileOut.flush();
+//                fileOut.close();
+//                rbc.close();
             } else {
                 Log.i(TAG, "download: file "+labelsPath+" already exists. no need to download");
             }
