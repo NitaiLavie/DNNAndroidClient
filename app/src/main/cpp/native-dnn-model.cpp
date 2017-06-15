@@ -172,8 +172,57 @@ JNIEXPORT jbyteArray JNICALL
         Java_dnnUtil_dnnModel_DnnModel_jniCreateModel(JNIEnv *env, jobject instance){
     //Todo: add content
     if(! NN_INITIATED) {
-        NN << fully_connected_layer(28 * 28,300) << tanh_layer()
-           << fully_connected_layer(300, 10) << softmax();
+
+//        NN << fully_connected_layer(28 * 28,300) << tanh_layer()
+//           << fully_connected_layer(300, 10) << softmax();
+        // connection table, see Table 1 in [LeCun1998]
+#define O true
+#define X false
+        static const bool tbl[] = {
+            O, X, X, X, O, O, O, X, X, O, O, O, O, X, O, O,
+            O, O, X, X, X, O, O, O, X, X, O, O, O, O, X, O,
+            O, O, O, X, X, X, O, O, O, X, X, O, X, O, O, O,
+            X, O, O, O, X, X, O, O, O, O, X, X, O, X, O, O,
+            X, X, O, O, O, X, X, O, O, O, O, X, O, O, X, O,
+            X, X, X, O, O, O, X, X, O, O, O, O, X, O, O, O
+        };
+#undef O
+#undef X
+
+    // by default will use backend_t::tiny_dnn unless you compiled
+    // with -DUSE_AVX=ON and your device supports AVX intrinsics
+    core::backend_t backend_type = core::default_engine();
+
+    // construct nets
+    //
+    // C : convolution
+    // S : sub-sampling
+    // F : fully connected
+        NN << convolutional_layer(32, 32, 5, 1,
+                                  6,  // C1, 1@32x32-in, 6@28x28-out
+                                  padding::valid, true, 1, 1, backend_type)
+           << tanh_layer(28, 28, 6)
+           << average_pooling_layer(28, 28, 6,
+                                    2)  // S2, 6@28x28-in, 6@14x14-out
+           << tanh_layer(14, 14, 6)
+           << convolutional_layer(14, 14, 5, 6,
+                                  16,  // C3, 6@14x14-in, 16@10x10-out
+                                  connection_table(tbl, 6, 16), padding::valid, true,
+                                  1, 1, backend_type)
+           << tanh_layer(10, 10, 16)
+           << average_pooling_layer(10, 10, 16,
+                                    2)  // S4, 16@10x10-in, 16@5x5-out
+           << tanh_layer(5, 5, 16)
+           << convolutional_layer(5, 5, 5, 16,
+                                  120,  // C5, 16@5x5-in, 120@1x1-out
+                                  padding::valid, true, 1, 1, backend_type)
+           << tanh_layer(1, 1, 120)
+           << fully_connected_layer(120, 10, true,  // F6, 120-in, 10-out
+                                    backend_type)
+           << tanh_layer(10);
+
+
+
         NN_INITIATED = true;
     }
     BinaryString<NET_TYPE> binaryString = to_binary_string(NN);
@@ -258,7 +307,8 @@ Java_dnnUtil_dnnModel_DnnModel_jniLoadTrainingData(JNIEnv *env, jobject instance
         case MNIST:
             NUM_OF_LABELS = 10;
             parse_mnist_labels(labels_file, DNN_LABELS);
-            parse_mnist_images(data_file, DNN_DATA, -1.0,1.0, 0, 0);
+//            parse_mnist_images(data_file, DNN_DATA, -1.0,1.0, 0, 0);
+            parse_mnist_images(data_file, DNN_DATA, -1.0,1.0, 2, 2);
             break;
         case CIFAR10:
             NUM_OF_LABELS = 10;
