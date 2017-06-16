@@ -172,54 +172,79 @@ JNIEXPORT jbyteArray JNICALL
         Java_dnnUtil_dnnModel_DnnModel_jniCreateModel(JNIEnv *env, jobject instance){
     //Todo: add content
     if(! NN_INITIATED) {
-
+//        mnist fully connected 1 hidden layer 300 hidden units
 //        NN << fully_connected_layer(28 * 28,300) << tanh_layer()
 //           << fully_connected_layer(300, 10) << softmax();
-        // connection table, see Table 1 in [LeCun1998]
-#define O true
-#define X false
-        static const bool tbl[] = {
-            O, X, X, X, O, O, O, X, X, O, O, O, O, X, O, O,
-            O, O, X, X, X, O, O, O, X, X, O, O, O, O, X, O,
-            O, O, O, X, X, X, O, O, O, X, X, O, X, O, O, O,
-            X, O, O, O, X, X, O, O, O, O, X, X, O, X, O, O,
-            X, X, O, O, O, X, X, O, O, O, O, X, O, O, X, O,
-            X, X, X, O, O, O, X, X, O, O, O, O, X, O, O, O
-        };
-#undef O
-#undef X
 
-    // by default will use backend_t::tiny_dnn unless you compiled
-    // with -DUSE_AVX=ON and your device supports AVX intrinsics
-    core::backend_t backend_type = core::default_engine();
+//        mnist - LeNet like ConvNet
+//        // connection table, see Table 1 in [LeCun1998]
+//#define O true
+//#define X false
+//        static const bool tbl[] = {
+//            O, X, X, X, O, O, O, X, X, O, O, O, O, X, O, O,
+//            O, O, X, X, X, O, O, O, X, X, O, O, O, O, X, O,
+//            O, O, O, X, X, X, O, O, O, X, X, O, X, O, O, O,
+//            X, O, O, O, X, X, O, O, O, O, X, X, O, X, O, O,
+//            X, X, O, O, O, X, X, O, O, O, O, X, O, O, X, O,
+//            X, X, X, O, O, O, X, X, O, O, O, O, X, O, O, O
+//        };
+//#undef O
+//#undef X
+//
+//    // by default will use backend_t::tiny_dnn unless you compiled
+//    // with -DUSE_AVX=ON and your device supports AVX intrinsics
+//    core::backend_t backend_type = core::default_engine();
+//
+//    // construct nets
+//    //
+//    // C : convolution
+//    // S : sub-sampling
+//    // F : fully connected
+//        NN << convolutional_layer(32, 32, 5, 1,
+//                                  6,  // C1, 1@32x32-in, 6@28x28-out
+//                                  padding::valid, true, 1, 1, backend_type)
+//           << tanh_layer(28, 28, 6)
+//           << average_pooling_layer(28, 28, 6,
+//                                    2)  // S2, 6@28x28-in, 6@14x14-out
+//           << tanh_layer(14, 14, 6)
+//           << convolutional_layer(14, 14, 5, 6,
+//                                  16,  // C3, 6@14x14-in, 16@10x10-out
+//                                  connection_table(tbl, 6, 16), padding::valid, true,
+//                                  1, 1, backend_type)
+//           << tanh_layer(10, 10, 16)
+//           << average_pooling_layer(10, 10, 16,
+//                                    2)  // S4, 16@10x10-in, 16@5x5-out
+//           << tanh_layer(5, 5, 16)
+//           << convolutional_layer(5, 5, 5, 16,
+//                                  120,  // C5, 16@5x5-in, 120@1x1-out
+//                                  padding::valid, true, 1, 1, backend_type)
+//           << tanh_layer(1, 1, 120)
+//           << fully_connected_layer(120, 10, true,  // F6, 120-in, 10-out
+//                                    backend_type)
+//           << tanh_layer(10);
 
-    // construct nets
-    //
-    // C : convolution
-    // S : sub-sampling
-    // F : fully connected
-        NN << convolutional_layer(32, 32, 5, 1,
-                                  6,  // C1, 1@32x32-in, 6@28x28-out
-                                  padding::valid, true, 1, 1, backend_type)
-           << tanh_layer(28, 28, 6)
-           << average_pooling_layer(28, 28, 6,
-                                    2)  // S2, 6@28x28-in, 6@14x14-out
-           << tanh_layer(14, 14, 6)
-           << convolutional_layer(14, 14, 5, 6,
-                                  16,  // C3, 6@14x14-in, 16@10x10-out
-                                  connection_table(tbl, 6, 16), padding::valid, true,
-                                  1, 1, backend_type)
-           << tanh_layer(10, 10, 16)
-           << average_pooling_layer(10, 10, 16,
-                                    2)  // S4, 16@10x10-in, 16@5x5-out
-           << tanh_layer(5, 5, 16)
-           << convolutional_layer(5, 5, 5, 16,
-                                  120,  // C5, 16@5x5-in, 120@1x1-out
-                                  padding::valid, true, 1, 1, backend_type)
-           << tanh_layer(1, 1, 120)
-           << fully_connected_layer(120, 10, true,  // F6, 120-in, 10-out
-                                    backend_type)
-           << tanh_layer(10);
+        // cifar10 net
+        using conv    = convolutional_layer;
+        using pool    = max_pooling_layer;
+        using fc      = fully_connected_layer;
+        using relu    = relu_layer;
+        using softmax = softmax_layer;
+
+        const int n_fmaps  = 32;  ///< number of feature maps for upper layer
+        const int n_fmaps2 = 64;  ///< number of feature maps for lower layer
+        const int n_fc     = 64;  ///< number of hidden units in fully-connected layer
+
+        NN << conv(32, 32, 5, 3, n_fmaps, padding::same)          // C1
+           << pool(32, 32, n_fmaps, 2)                            // P2
+           << relu(16, 16, n_fmaps)                               // activation
+           << conv(16, 16, 5, n_fmaps, n_fmaps, padding::same)    // C3
+           << pool(16, 16, n_fmaps, 2)                            // P4
+           << relu(8, 8, n_fmaps)                                 // activation
+           << conv(8, 8, 5, n_fmaps, n_fmaps2, padding::same)     // C5
+           << pool(8, 8, n_fmaps2, 2)                             // P6
+           << relu(4, 4, n_fmaps2)                                // activation
+           << fc(4 * 4 * n_fmaps2, n_fc)                          // FC7
+           << fc(n_fc, 10) << softmax_layer(10);                  // FC10
 
 
 
@@ -303,6 +328,13 @@ Java_dnnUtil_dnnModel_DnnModel_jniLoadTrainingData(JNIEnv *env, jobject instance
     DNN_DATA = new std::vector<vec_t>();
     DNN_LABELS = new std::vector<label_t>();
 
+    if(data_type.compare("mnist")){
+        TRAINING_SET = MNIST;
+    }
+    else if (data_type.compare("cifar10")){
+        TRAINING_SET = CIFAR10;
+    }
+
     switch(TRAINING_SET){
         case MNIST:
             NUM_OF_LABELS = 10;
@@ -312,7 +344,7 @@ Java_dnnUtil_dnnModel_DnnModel_jniLoadTrainingData(JNIEnv *env, jobject instance
             break;
         case CIFAR10:
             NUM_OF_LABELS = 10;
-            //parse_cifar10();
+            parse_cifar10(data_file, DNN_DATA, DNN_LABELS, -1.0, 1.0, 0, 0);
             break;
         default:
             NUM_OF_LABELS = 10;

@@ -25,10 +25,10 @@ public class DnnDataDownloader {
     }
 
     public String[] download(String dataSet, String dataType, Integer dataSize, Integer dataIndex) throws Exception{
-        URL dataURL;
-        URL labelsURL;
-        File dataPath;
-        File labelsPath;
+        URL dataURL = null;
+        URL labelsURL = null;
+        File dataPath = null;
+        File labelsPath = null;
         try{
             if (dataSet.equals("mnist")){
                 dataURL      = new URL(mnistDataURL(dataSet, dataType, dataSize, dataIndex));
@@ -37,58 +37,42 @@ public class DnnDataDownloader {
                 labelsPath   = new File(mnistLabelsPath(dataSet, dataType, dataSize, dataIndex));
             } else if(dataSet.equals("cifar10")){
                 dataURL      = new URL(cifar10DataURL(dataSet, dataType, dataSize, dataIndex));
-                labelsURL    = new URL(cifar10LabelsURL(dataSet, dataType, dataSize, dataIndex));
                 dataPath     = new File(cifar10DataPath(dataSet, dataType, dataSize, dataIndex));
-                labelsPath   = new File(cifar10LabelsPath(dataSet, dataType, dataSize, dataIndex));
             }
             else {
                 //Todo: ERROR
                 throw new Exception("illegal dataSet");
             }
 
-//            ReadableByteChannel rbc;
-//            FileOutputStream fileOut;
-
-            if(!dataPath.exists()) {
+            if(dataPath != null && !dataPath.exists()) {
                 FileUtils.copyURLToFile(dataURL, dataPath);
-                // download data
-//                rbc = Channels.newChannel(dataURL.openStream());
-//                fileOut = new FileOutputStream(dataPath);
-//                long numBytesRead = 0;
-//                do {
-//                    numBytesRead = fileOut.getChannel().transferFrom(rbc, numBytesRead, 1 << 24);
-//                    fileOut.flush();
-//                } while (numBytesRead != 0);
-//                fileOut.close();
-//                rbc.close();
-
             } else {
                 Log.i(TAG, "download: file "+dataPath+" already exists. no need to download");
             }
-            if(!labelsPath.exists()) {
+
+            if(labelsPath != null && !labelsPath.exists()) {
                 FileUtils.copyURLToFile(labelsURL, labelsPath);
-//                rbc = Channels.newChannel(labelsURL.openStream());
-//                fileOut = new FileOutputStream(labelsPath);
-//                fileOut.getChannel().transferFrom(rbc, 0, 1<<24);
-//                fileOut.flush();
-//                fileOut.close();
-//                rbc.close();
             } else {
                 Log.i(TAG, "download: file "+labelsPath+" already exists. no need to download");
             }
+
         }catch(Exception e){
             Log.e(TAG, "download: "+ e.getMessage());
             e.printStackTrace();
             throw e;
         }
-
-        return new String[]{dataPath.getPath(), labelsPath.getPath()};
-
+        if (dataSet.equals("mnist")){
+            return new String[]{dataPath.getPath(), labelsPath.getPath()};
+        } else if(dataSet.equals("cifar10")){
+            return new String[]{dataPath.getPath(),"no_labels"};
+        } else {
+            return null;
+        }
     }
 
     private String mnistDataURL(String dataSet, String dataType, Integer dataSize, Integer dataIndex){
-            return mBaseURL+dataSet+"/"+dataType+"-images.idx3-ubyte."+dataSize+
-                    "/"+dataType+"-images.idx3-ubyte."+dataSize+"."+String.format("%02d",dataIndex);
+        return mBaseURL+dataSet+"/"+dataType+"-labels.idx1-ubyte."+dataSize+
+                "/"+dataType+"-labels.idx1-ubyte."+dataSize+"."+String.format("%02d",dataIndex);
     }
 
     private String mnistLabelsURL(String dataSet, String dataType, Integer dataSize, Integer dataIndex){
@@ -97,13 +81,8 @@ public class DnnDataDownloader {
     }
 
     private String cifar10DataURL(String dataSet, String dataType, Integer dataSize, Integer dataIndex) {
-        //Todo: insert content
-        return null;
-    }
-
-    private String cifar10LabelsURL(String dataSet, String dataType, Integer dataSize, Integer dataIndex) {
-        //Todo: insert content
-        return null;
+        return mBaseURL+dataSet+"/"+dataType+"_batch.bin."+dataSize+
+                "/"+dataType+"_batch.bin."+dataSize+"."+String.format("%02d",dataIndex);
     }
 
     private String mnistDataPath(String dataSet, String dataType, Integer dataSize, Integer dataIndex){
@@ -114,14 +93,8 @@ public class DnnDataDownloader {
         return mFilesDir+"/"+dataType+"-labels.idx1-ubyte."+dataSize+"."+String.format("%02d",dataIndex);
     }
 
-    private String cifar10LabelsPath(String dataSet, String dataType, Integer dataSize, Integer dataIndex) {
-        //Todo: insert content
-        return null;
-    }
-
     private String cifar10DataPath(String dataSet, String dataType, Integer dataSize, Integer dataIndex) {
-        //Todo: insert content
-        return null;
+        return mFilesDir+"/"+dataType+"_batch.bin."+dataSize+"."+String.format("%02d",dataIndex);
     }
 
 }
