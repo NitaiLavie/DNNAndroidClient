@@ -328,10 +328,10 @@ Java_dnnUtil_dnnModel_DnnModel_jniLoadTrainingData(JNIEnv *env, jobject instance
     DNN_DATA = new std::vector<vec_t>();
     DNN_LABELS = new std::vector<label_t>();
 
-    if(data_type.compare("mnist")){
+    if(data_type == "mnist"){
         TRAINING_SET = MNIST;
     }
-    else if (data_type.compare("cifar10")){
+    else if (data_type == "cifar10"){
         TRAINING_SET = CIFAR10;
     }
 
