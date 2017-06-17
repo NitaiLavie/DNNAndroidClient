@@ -26,35 +26,32 @@ public class DnnService extends Service {
     // for foreground service test:
     public static final int ONGOING_NOTIFICATION_ID = 666;
     public static final String IP = "ip";
+    public static final String USERNAME = "username";
+
+    private static final String DefaultIP = "109.67.204.221";
+    private static final String DefaultUsername = "foobarbaz";
 
     private final IBinder mBinder = new DNNServiceBinder();
+    private DnnServiceCallbacks mServiceCallbacks;
     private DnnServiceThread mMainThread;
     private String mDnnServerIP;
+    private String mClientUsername;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if(intent != null) {
             // getting extras from intent
             mDnnServerIP = intent.getStringExtra(IP);
+            if(mDnnServerIP.equals("")){
+                mDnnServerIP = DefaultIP;
+            }
 
-
-            // getting a uniqe device_id
-            String androidId = Settings.Secure.getString(getApplicationContext().getContentResolver(),
-                    Settings.Secure.ANDROID_ID);
-            File filesDir = getApplicationContext().getFilesDir();
-//            //DEBUG
-//            File filesDir = Environment.getExternalStorageDirectory();
-//            //DEBUG
-
-            // getting a PartialWakeLock so this service threads will run even when the device is locked
-            PowerManager mgr = (PowerManager)getApplicationContext().getSystemService(Context.POWER_SERVICE);
-            PowerManager.WakeLock wakeLock = mgr.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "DnnWakeLock");
-
-            // creating the main service thread
-            mMainThread = new DnnServiceThread(mDnnServerIP,wakeLock,androidId, filesDir);
+            mClientUsername = intent.getStringExtra(USERNAME);
+            if(mClientUsername.equals("")){
+                mClientUsername = DefaultUsername;
+            }
 
             // setting up a notification for the forground service:
-
             Notification.Builder notificationBuilder = new Notification.Builder(this)
                     .setSmallIcon(R.mipmap.hamster_cogwheel)
                     .setContentTitle(getText(R.string.notification_title))
@@ -76,12 +73,6 @@ public class DnnService extends Service {
             // sending this service to the foreground
             startForeground(ONGOING_NOTIFICATION_ID, notificationBuilder.build());
 
-            ////////
-
-            // Starting main service thread:
-            mMainThread.start();
-
-            ////////
         } else {
             Log.i(TAG,"Relunched DnnService with 'null' Intent");
         }
@@ -94,11 +85,7 @@ public class DnnService extends Service {
         // removing this service from the foreground
         stopForeground(true);
         mMainThread.interrupt();
-
-        //mMainThread.stop(); /* deprecated!!*/
-
     }
-
 
     @Override
     public IBinder onBind(Intent arg0) {
@@ -112,6 +99,31 @@ public class DnnService extends Service {
         }
         DnnService getService() {
             return DnnService.this;
+        }
+    }
+
+    public void setCallbacks(DnnServiceCallbacks callbacks) {
+        mServiceCallbacks = callbacks;
+    }
+
+    public void startMainThread(){
+        if(mMainThread == null) {
+            // getting a uniqe device_id
+            String androidId = Settings.Secure.getString(getApplicationContext().getContentResolver(),
+                    Settings.Secure.ANDROID_ID);
+            File filesDir = getApplicationContext().getFilesDir();
+//            //DEBUG
+//            File filesDir = Environment.getExternalStorageDirectory();
+//            //DEBUG
+            // getting a PartialWakeLock so this service threads will run even when the device is locked
+            PowerManager mgr = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
+            PowerManager.WakeLock wakeLock = mgr.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "DnnWakeLock");
+            // creating the main service thread
+            mMainThread = new DnnServiceThread(mServiceCallbacks, mDnnServerIP, wakeLock, androidId + "." + mClientUsername, filesDir);
+        }
+        if(!mMainThread.isAlive()){
+            // Starting main service thread:
+            mMainThread.start();
         }
     }
 }

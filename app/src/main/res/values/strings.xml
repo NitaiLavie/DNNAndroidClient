@@ -9,6 +9,7 @@
 
     <string name="enter_ip_text">Enter DNN server IP</string>
     <string name="current_ip_text">Current DNN server IP:</string>
+    <string name="HintIP">default: 109.67.204.221</string>
 
     <string name="dnn_service_name">DNNService</string>
 
@@ -18,7 +19,15 @@
 
     <string name="toast_start">Started DNN client</string>
     <string name="toast_stop">Stoped DNN client</string>
+
+    <string name="enter_username_text">Enter username</string>
+    <string name="username_text">username</string>
+    <string name="HintUsername">(Must be letters or digits)</string>
+
     <string name="PrefSavedIP">savedIP</string>
+    <string name="PrefSavedUsername">SavedUsername</string>
+
+    <string name="toast_username">Please enter a valid username</string>
 
 
 </resources>

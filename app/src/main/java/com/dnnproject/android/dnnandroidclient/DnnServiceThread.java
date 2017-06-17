@@ -25,13 +25,15 @@ public class DnnServiceThread extends Thread {
     private final String mAndroidId;
     private final PowerManager.WakeLock mWakeLock;
     private final File mFilesDir;
+    private final DnnServiceCallbacks mServiceCallbacks;
 
-    public DnnServiceThread(String dnnServerIP, PowerManager.WakeLock wakeLock, String androidId, File filesDir){
+    public DnnServiceThread(DnnServiceCallbacks serviceCallbacks, String dnnServerIP, PowerManager.WakeLock wakeLock, String androidId, File filesDir){
         super();
         mDnnServerIP = dnnServerIP;
         mAndroidId = androidId;
         mWakeLock = wakeLock;
         mFilesDir = filesDir;
+        mServiceCallbacks = serviceCallbacks;
     }
 
     @Override
@@ -73,7 +75,10 @@ public class DnnServiceThread extends Thread {
         ClientLogic clientLogic = new ClientLogic(this, tcpClient, dataDownloader, mAndroidId);
 
         try {
+            mServiceCallbacks.printMessage("Connecting to Dnn server...");
             tcpClient.start();
+            mServiceCallbacks.printMessage("Connected Successfully!\n"+
+                "Dnn client is Running!");
             clientLogic.run();
 
         } catch (IOException e){
@@ -82,7 +87,9 @@ public class DnnServiceThread extends Thread {
             } else {
                 Log.e(TAG, e.getClass().getSimpleName() + " Occured!" );
             }
-
+        } finally {
+            mServiceCallbacks.printMessage("Sorry, faild to connect to Dnn server! "+
+                "Please check address and try again...");
         }
 
         try {

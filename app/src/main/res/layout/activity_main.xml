@@ -13,42 +13,96 @@
         android:id="@+id/ip_title_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20pt"
+        android:layout_marginTop="20dp"
         android:layout_gravity="center"
         android:text="@string/enter_ip_text"
         android:freezesText="true"/>
     <EditText
         android:id="@+id/ip_edit_box"
-        android:layout_width="100pt"
+        android:layout_width="wrap_content"
+        android:minWidth="100dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:textAlignment="center"
         android:inputType="number|numberDecimal"
         android:digits="0123456789."
+        android:hint="@string/HintIP"
         android:freezesText="true"/>
 
-
-    <Button
-        android:id="@+id/service_button"
+    <TextView
+        android:id="@+id/username_title_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
         android:layout_gravity="center"
-        android:layout_marginTop="20pt"
-        android:onClick="onClick"
-        android:text="@string/button_start" />
+        android:text="@string/enter_username_text"
+        android:freezesText="true"/>
+    <EditText
+        android:id="@+id/username_edit_box"
+        android:layout_width="wrap_content"
+        android:minWidth="100dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:textAlignment="center"
+        android:digits="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+        android:maxLength="30"
+        android:hint="@string/HintUsername"
+        android:freezesText="true"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="20dp"
+        android:background="@android:color/darker_gray"/>
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+        <TextView
+            android:id="@+id/service_message"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:freezesText="true"
+            android:textSize="30sp"
+            android:textAlignment="center"
+            android:text=""
+            android:textStyle="bold"/>
+    </ScrollView>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@android:color/darker_gray"/>
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginTop="20pt">
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="30dp"
+        android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/status_text"
+        <Button
+            android:id="@+id/service_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/text_start"
-            android:freezesText="true"/>
+            android:layout_gravity="center"
+            android:layout_marginTop="20dp"
+            android:onClick="onClick"
+            android:text="@string/button_start" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center">
+
+            <TextView
+                android:id="@+id/status_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:freezesText="true"
+                android:text="@string/text_start" />
+        </LinearLayout>
 
     </LinearLayout>
 
