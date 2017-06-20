@@ -7,56 +7,90 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:layout_centerHorizontal="true"
     tools:context="com.dnnproject.android.dnnandroidclient.MainActivity">
 
-    <TextView
-        android:id="@+id/ip_title_text"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/input_layout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:layout_gravity="center"
-        android:text="@string/enter_ip_text"
-        android:freezesText="true"/>
-    <EditText
-        android:id="@+id/ip_edit_box"
-        android:layout_width="wrap_content"
-        android:minWidth="100dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:textAlignment="center"
-        android:inputType="number|numberDecimal"
-        android:digits="0123456789."
-        android:hint="@string/HintIP"
-        android:freezesText="true"/>
+        android:layout_gravity="center_horizontal"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:layout_marginBottom="10sp">
+        <TextView
+            android:id="@+id/ip_title_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20sp"
+            android:layout_gravity="center"
+            android:gravity="center_horizontal"
+            android:text="@string/enter_ip_text"
+            android:freezesText="true"/>
+        <EditText
+            android:id="@+id/ip_edit_box"
+            android:layout_width="wrap_content"
+            android:minWidth="100sp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:textAlignment="center"
+            android:gravity="center_horizontal"
+            android:inputType="number|numberDecimal"
+            android:maxLines="1"
+            android:digits="0123456789."
+            android:imeOptions="actionDone"
+            android:maxLength="30"
+            android:hint="@string/HintIP"
+            android:freezesText="true" />
+        <TextView
+            android:id="@+id/username_title_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20sp"
+            android:layout_gravity="center"
+            android:gravity="center_horizontal"
+            android:text="@string/enter_username_text"
+            android:freezesText="true"/>
+        <EditText
+            android:id="@+id/username_edit_box"
+            android:layout_width="wrap_content"
+            android:minWidth="100sp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:textAlignment="center"
+            android:gravity="center_horizontal"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:inputType="text"
+            android:imeOptions="actionDone"
+            android:digits="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+            android:maxLength="30"
+            android:hint="@string/HintUsername"
+            android:freezesText="true"/>
+    </LinearLayout>
 
     <TextView
-        android:id="@+id/username_title_text"
+        android:id="@+id/big_username"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
         android:layout_gravity="center"
-        android:text="@string/enter_username_text"
-        android:freezesText="true"/>
-    <EditText
-        android:id="@+id/username_edit_box"
-        android:layout_width="wrap_content"
-        android:minWidth="100dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
+        android:freezesText="true"
+        android:textSize="18sp"
         android:textAlignment="center"
-        android:digits="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
-        android:maxLength="30"
-        android:hint="@string/HintUsername"
-        android:freezesText="true"/>
+        android:gravity="center_horizontal"
+        android:text=""
+        android:layout_marginTop="10sp"
+        android:visibility="gone"/>
 
     <View
         android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginTop="20dp"
+        android:layout_height="1sp"
+        android:layout_marginTop="10sp"
         android:background="@android:color/darker_gray"/>
+
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="0sp"
         android:layout_weight="1">
         <TextView
             android:id="@+id/service_message"
@@ -64,42 +98,42 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:freezesText="true"
-            android:textSize="30sp"
+            android:textSize="22sp"
             android:textAlignment="center"
+            android:gravity="center_horizontal"
             android:text=""
             android:textStyle="bold"/>
     </ScrollView>
+
     <View
         android:layout_width="match_parent"
-        android:layout_height="1dp"
+        android:layout_height="1sp"
         android:background="@android:color/darker_gray"/>
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginBottom="30dp"
+        android:layout_marginBottom="30sp"
         android:orientation="vertical">
-
         <Button
             android:id="@+id/service_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="20sp"
             android:onClick="onClick"
             android:text="@string/button_start" />
-
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center">
-
             <TextView
                 android:id="@+id/status_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="20sp"
+                android:gravity="center_horizontal"
                 android:freezesText="true"
                 android:text="@string/text_start" />
         </LinearLayout>

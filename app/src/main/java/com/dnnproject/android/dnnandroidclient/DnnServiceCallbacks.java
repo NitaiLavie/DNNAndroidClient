@@ -5,5 +5,8 @@ package com.dnnproject.android.dnnandroidclient;
  */
 
 public interface DnnServiceCallbacks {
+
     void printMessage(String message);
+
+    void serverDisconnect();
 }

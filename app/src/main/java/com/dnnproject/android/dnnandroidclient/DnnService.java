@@ -104,6 +104,15 @@ public class DnnService extends Service {
 
     public void setCallbacks(DnnServiceCallbacks callbacks) {
         mServiceCallbacks = callbacks;
+        if(mMainThread != null) {
+            mMainThread.setServiceCallbacks(mServiceCallbacks);
+        }
+    }
+    public void unsetCallbacks(){
+        mServiceCallbacks = null;
+        if(mMainThread != null) {
+            mMainThread.unsetServiceCallbacks();
+        }
     }
 
     public void startMainThread(){

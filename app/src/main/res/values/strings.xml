@@ -28,6 +28,7 @@
     <string name="PrefSavedUsername">SavedUsername</string>
 
     <string name="toast_username">Please enter a valid username</string>
+    <string name="dnn_client_stoped">Dnn client stopped!</string>
 
 
 </resources>

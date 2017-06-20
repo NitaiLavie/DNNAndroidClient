@@ -148,7 +148,7 @@ public class TcpClient implements DnnMessageTransceiver{
             // starting input and output listeners threads
             mInputListener.start();
             mOutputListener.start();
-        } else {
+        } else if(mRun == true) {
             throw new IOException("Could not connect to the server");
         }
 

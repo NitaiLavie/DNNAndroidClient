@@ -13,9 +13,12 @@ import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.view.View;
 import android.widget.Toast;
+
+import static android.support.v7.appcompat.R.id.wrap_content;
 
 public class MainActivity extends AppCompatActivity implements DnnServiceCallbacks {
     private static final String TAG = "MainActivity";
@@ -25,11 +28,15 @@ public class MainActivity extends AppCompatActivity implements DnnServiceCallbac
 
     private Toast mToast;
 
+    private LinearLayout inputLayout;
+
     private TextView ipTitleText;
     private EditText ipEditText;
 
     private TextView usernameTitleText;
     private EditText usernameEditText;
+
+    private TextView bigUsername;
 
     private TextView serviceMessage;
 
@@ -58,27 +65,6 @@ public class MainActivity extends AppCompatActivity implements DnnServiceCallbac
         }
     };
 
-//    private BroadcastReceiver receiver = new BroadcastReceiver() {
-//        @Override
-//        public void onReceive(Context context, Intent intent) {
-//            Bundle bundle = intent.getExtras();
-//            if (bundle != null) {
-//                String string = bundle.getString(DownloadService.FILEPATH);
-//                int resultCode = bundle.getInt(DownloadService.RESULT);
-//                if (resultCode == RESULT_OK){
-//                    Toast.makeText(MainActivity.this, "Download complete. Download URI: " +
-//                        string, Toast.LENGTH_LONG).show();
-//                    textView.setText("Downlaod done");
-//                } else {
-//                    Toast.makeText(MainActivity.this, "Download failed",
-//                            Toast.LENGTH_LONG);
-//                    textView.setText("Download failed");
-//                }
-//            }
-//        }
-//    };
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -86,11 +72,15 @@ public class MainActivity extends AppCompatActivity implements DnnServiceCallbac
 
         mToast = Toast.makeText(this,"",Toast.LENGTH_SHORT);
 
+        inputLayout = (LinearLayout) findViewById(R.id.input_layout);
+
         ipTitleText = (TextView) findViewById(R.id.ip_title_text);
         ipEditText = (EditText) findViewById(R.id.ip_edit_box);
 
         usernameTitleText = (TextView) findViewById(R.id.username_title_text);
         usernameEditText = (EditText) findViewById(R.id.username_edit_box);
+
+        bigUsername = (TextView) findViewById(R.id.big_username);
 
         serviceMessage = (TextView) findViewById(R.id.service_message);
 
@@ -104,15 +94,25 @@ public class MainActivity extends AppCompatActivity implements DnnServiceCallbac
     @Override
     protected void onResume(){
         super.onResume();
+        if(dnnServiceStarted){
+            Intent intent = new Intent(this, DnnService.class);
+            bindService(intent,mServiceConnection, Context.BIND_AUTO_CREATE);
+            mServiceBound = true;
+        }
         mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         mPrefsEditor = mPrefs.edit();
 
         ipEditText.setText(mPrefs.getString(getText(R.string.PrefSavedIP).toString(),""));
         usernameEditText.setText(mPrefs.getString(getText(R.string.PrefSavedUsername).toString(),""));
+        bigUsername.setText(mPrefs.getString(getText(R.string.PrefSavedUsername).toString(),""));
     }
 
     @Override
     protected void onPause(){
+        if (mServiceBound) {
+            unbindService(mServiceConnection);
+            mServiceBound = false;
+        }
         super.onPause();
         mPrefsEditor.putString(getText(R.string.PrefSavedIP).toString(), ipEditText.getText().toString());
         mPrefsEditor.putString(getText(R.string.PrefSavedUsername).toString(), usernameEditText.getText().toString());
@@ -134,9 +134,9 @@ public class MainActivity extends AppCompatActivity implements DnnServiceCallbac
                 intent.putExtra(DnnService.USERNAME, usernameEditText.getText().toString());
 
                 startService(intent);
-                bindService(intent,mServiceConnection, Context.BIND_AUTO_CREATE);
                 mToast.setText(getText(R.string.toast_start));
                 mToast.show();
+                bindService(intent,mServiceConnection, Context.BIND_AUTO_CREATE);
             } else {
                 dnnServiceStarted = false;
                 if (mServiceBound) {
@@ -159,6 +159,9 @@ public class MainActivity extends AppCompatActivity implements DnnServiceCallbac
             usernameTitleText.setText(getText(R.string.username_text));
             ipEditText.setEnabled(false);
             usernameEditText.setEnabled(false);
+            inputLayout.setVisibility(View.GONE);
+            bigUsername.setText(usernameEditText.getText());
+            bigUsername.setVisibility(View.VISIBLE);
         } else {
             serviceButton.setText(getText(R.string.button_start));
             serviceText.setText(getText(R.string.text_start));
@@ -166,6 +169,9 @@ public class MainActivity extends AppCompatActivity implements DnnServiceCallbac
             usernameTitleText.setText(getText(R.string.enter_username_text));
             ipEditText.setEnabled(true);
             usernameEditText.setEnabled(true);
+            inputLayout.setVisibility(View.VISIBLE);
+            bigUsername.setVisibility(View.GONE);
+            serviceMessage.setText("");
         }
     }
 
@@ -174,48 +180,60 @@ public class MainActivity extends AppCompatActivity implements DnnServiceCallbac
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                //serviceMessage.setText(message);
-                setupFadeAnimation(serviceMessage, message);
+                serviceMessage.setText(message);
+                //setupFadeAnimation(serviceMessage, message);
+            }
+        });
+    }
+
+    @Override
+    public void serverDisconnect() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if(dnnServiceStarted == true) {
+                    serviceButton.callOnClick();
+                }
             }
         });
     }
 
     // text view animation for service messages:
-    private void setupFadeAnimation(final TextView textView, final String message) {
-        // Start from 0.1f if you desire 90% fade animation
-        final Animation fadeIn = new AlphaAnimation(0.0f, 1.0f);
-        fadeIn.setDuration(250);
-        fadeIn.setStartOffset(250);
-        final Animation fadeOut = new AlphaAnimation(1.0f, 0.0f);
-        fadeOut.setDuration(250);
-        fadeOut.setStartOffset(0);
-        fadeIn.setAnimationListener(new Animation.AnimationListener(){
-            @Override
-            public void onAnimationEnd(Animation arg0) {}
-            @Override
-            public void onAnimationRepeat(Animation arg0) {}
-            @Override
-            public void onAnimationStart(Animation arg0) {
-                textView.setText(message);
-            }
-        });
-        fadeOut.setAnimationListener(new Animation.AnimationListener(){
-            @Override
-            public void onAnimationEnd(Animation arg0) {
-                textView.startAnimation(fadeIn);
-            }
-            @Override
-            public void onAnimationRepeat(Animation arg0) {}
-            @Override
-            public void onAnimationStart(Animation arg0) {}
-        });
-        if(message != null) {
-            if(textView.getText().toString().equals("")){
-                textView.setAlpha(1.0f);
-                textView.startAnimation(fadeIn);
-            } else {
-                textView.startAnimation(fadeOut);
-            }
-        }
-    }
+//    private void setupFadeAnimation(final TextView textView, final String message) {
+//        // Start from 0.1f if you desire 90% fade animation
+//        final Animation fadeIn = new AlphaAnimation(0.0f, 1.0f);
+//        fadeIn.setDuration(250);
+//        fadeIn.setStartOffset(250);
+//        final Animation fadeOut = new AlphaAnimation(1.0f, 0.0f);
+//        fadeOut.setDuration(250);
+//        fadeOut.setStartOffset(0);
+//        fadeIn.setAnimationListener(new Animation.AnimationListener(){
+//            @Override
+//            public void onAnimationEnd(Animation arg0) {}
+//            @Override
+//            public void onAnimationRepeat(Animation arg0) {}
+//            @Override
+//            public void onAnimationStart(Animation arg0) {
+//                textView.setText(message);
+//            }
+//        });
+//        fadeOut.setAnimationListener(new Animation.AnimationListener(){
+//            @Override
+//            public void onAnimationEnd(Animation arg0) {
+//                textView.startAnimation(fadeIn);
+//            }
+//            @Override
+//            public void onAnimationRepeat(Animation arg0) {}
+//            @Override
+//            public void onAnimationStart(Animation arg0) {}
+//        });
+//        if(message != null) {
+//            if(textView.getText().toString().equals("")){
+//                textView.setAlpha(1.0f);
+//                textView.startAnimation(fadeIn);
+//            } else {
+//                textView.startAnimation(fadeOut);
+//            }
+//        }
+//    }
 }

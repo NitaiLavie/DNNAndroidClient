@@ -9,6 +9,7 @@ import com.dnnproject.android.dnnandroidclient.tcpclient.TcpClient;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 
 import dnnUtil.dnnModel.DnnModel;
 import dnnUtil.dnnModel.DnnModelDescriptor;
@@ -25,7 +26,9 @@ public class DnnServiceThread extends Thread {
     private final String mAndroidId;
     private final PowerManager.WakeLock mWakeLock;
     private final File mFilesDir;
-    private final DnnServiceCallbacks mServiceCallbacks;
+    private TcpClient mTcpClient;
+    private ClientLogic mClientLogic;
+    private DnnServiceCallbacks mServiceCallbacks;
 
     public DnnServiceThread(DnnServiceCallbacks serviceCallbacks, String dnnServerIP, PowerManager.WakeLock wakeLock, String androidId, File filesDir){
         super();
@@ -39,7 +42,6 @@ public class DnnServiceThread extends Thread {
     @Override
     public void run(){
         super.run();
-
         // locking the partial wake lock
         mWakeLock.acquire();
         //DEBUG
@@ -70,37 +72,60 @@ public class DnnServiceThread extends Thread {
 //        if(true) return;
         //DEBUG
         // creating the tcp client
-        TcpClient tcpClient = new TcpClient(mDnnServerIP);
-        DnnDataDownloader dataDownloader = new DnnDataDownloader(mFilesDir);
-        ClientLogic clientLogic = new ClientLogic(this, tcpClient, dataDownloader, mAndroidId);
-
         try {
-            mServiceCallbacks.printMessage("Connecting to Dnn server...");
-            tcpClient.start();
-            mServiceCallbacks.printMessage("Connected Successfully!\n"+
-                "Dnn client is Running!");
-            clientLogic.run();
+            mTcpClient = new TcpClient(mDnnServerIP);
+            DnnDataDownloader dataDownloader = new DnnDataDownloader(mFilesDir);
+            mClientLogic = new ClientLogic(this, mTcpClient, dataDownloader, mAndroidId);
 
-        } catch (IOException e){
-            if(e.getMessage() != null){
+            try {
+                if(mServiceCallbacks != null) mServiceCallbacks.printMessage("Connecting to Dnn server...");
+                mTcpClient.start();
+                if(this.isInterrupted()) throw new InterruptedException("Thread interrupted!");
+                if(mServiceCallbacks != null) mServiceCallbacks.printMessage("Connected Successfully!\n" +
+                        "Dnn client is Running!");
+                mClientLogic.run();
+
+            } catch (IOException e) {
+                if (e.getMessage() != null) {
+                    Log.e(TAG, e.getMessage());
+                } else {
+                    Log.e(TAG, e.getClass().getSimpleName() + " Occured!");
+                }
+                if(this.isInterrupted()) throw new InterruptedException("Thread interrupted!");
+                if(mServiceCallbacks != null) mServiceCallbacks.serverDisconnect();
+                if(mServiceCallbacks != null) mServiceCallbacks.printMessage("Sorry, failed to connect to Dnn server! " +
+                        "Please check address and try again...");
+            }
+
+            try {
+                mTcpClient.stop();
+            } catch (IOException e) {
+                Log.e(TAG, "Could not stop tcp client!");
+                e.printStackTrace();
+            }
+        } catch (InterruptedException e) {
+            if (e.getMessage() != null) {
                 Log.e(TAG, e.getMessage());
             } else {
-                Log.e(TAG, e.getClass().getSimpleName() + " Occured!" );
+                Log.e(TAG, e.getClass().getSimpleName() + " Occured!");
+            }
+            try {
+                mTcpClient.stop();
+            } catch (IOException ioe) {
+                Log.e(TAG, "Could not stop tcp client!");
+                ioe.printStackTrace();
             }
         } finally {
-            mServiceCallbacks.printMessage("Sorry, faild to connect to Dnn server! "+
-                "Please check address and try again...");
+            // unlocking the partial wake lock
+            mWakeLock.release();
         }
+    }
 
-        try {
-            tcpClient.stop();
-        } catch (IOException e) {
-            Log.e(TAG, "Could not stop tcp client!");
-            e.printStackTrace();
-        }
-
-        // unlocking the partial wake lock
-        mWakeLock.release();
+    void setServiceCallbacks(DnnServiceCallbacks serviceCallbacks){
+        mServiceCallbacks = serviceCallbacks;
+    }
+    void unsetServiceCallbacks(){
+        mServiceCallbacks = null;
     }
 
 }
