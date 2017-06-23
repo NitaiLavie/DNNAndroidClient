@@ -30,6 +30,28 @@
     <string name="toast_username">Please enter a valid username</string>
     <string name="dnn_client_stoped">Dnn client stopped!</string>
     <string name="action_settings">settings</string>
+    <string name="action_about">About</string>
+    <string name="about_done">Done</string>
+    <string name="about_cancel">Cancel</string>
+    <string name="about_title">About DNNAndroidClient</string>
+    <string name="about_text">
+        "About the project:"
+        "\nDNNAndroidClient is a project made for the Technion."
+        "\nIt adresses the chalenges of Deep learning on resource limited environment."
+        "\nDNN stands for \"Distributed Neural Networks\"."
+        "\n"
+        "\nAbout us:"
+        "\ndfglkjsdfghlkjsdfg"
+        "\nlksdjfglkr fdlkdfs dflkjfg dfsg"
+        "\nlkjdsfg lkjdfsg lkjdfsg lkjfg lkjdsfg"
+        "\nfsdgkljdfsgkjl fg lkjsd glkjsdf"
+        "\nfds gkljdfsg lkjfsg lkjdfs"
+        "\nThat's it!!"
+        "\n"
+        "\nVersion:"
+        "\n1.01.2a"
+    </string>
+    <string name="action_log_toggle">Toggle Log</string>
 
 
 </resources>

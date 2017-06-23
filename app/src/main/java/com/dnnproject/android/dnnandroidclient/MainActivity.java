@@ -11,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.Button;
@@ -19,6 +20,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.view.View;
 import android.widget.Toast;
+
+import java.util.Calendar;
 
 import static android.support.v7.appcompat.R.id.wrap_content;
 
@@ -43,6 +46,7 @@ public class MainActivity extends AppCompatActivity implements DnnServiceCallbac
     private TextView bigUsername;
 
     private TextView serviceMessage;
+    private TextView serviceLog;
 
     private TextView serviceText;
     private Button serviceButton;
@@ -90,6 +94,7 @@ public class MainActivity extends AppCompatActivity implements DnnServiceCallbac
         bigUsername = (TextView) findViewById(R.id.big_username);
 
         serviceMessage = (TextView) findViewById(R.id.service_message);
+        serviceLog = (TextView) findViewById(R.id.service_log);
 
         serviceText = (TextView) findViewById(R.id.status_text);
         serviceButton = (Button) findViewById(R.id.service_button);
@@ -103,6 +108,36 @@ public class MainActivity extends AppCompatActivity implements DnnServiceCallbac
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main_menu, menu);
         return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_about:
+                // User chose the "About" item, show the app about dialog...
+                DnnAboutDialogFragment aboutDialog = new DnnAboutDialogFragment();
+                aboutDialog.show(getSupportFragmentManager(),"about");
+                return true;
+
+            case R.id.action_log_toggle:
+                // User chose the "Toggle Log" action, toggle log...
+                if(item.isChecked()){
+                    item.setChecked(false);
+                    serviceMessage.setVisibility(View.VISIBLE);
+                    serviceLog.setVisibility(View.GONE);
+                } else {
+                    item.setChecked(true);
+                    serviceMessage.setVisibility(View.GONE);
+                    serviceLog.setVisibility(View.VISIBLE);
+                }
+                return true;
+
+            default:
+                // If we got here, the user's action was not recognized.
+                // Invoke the superclass to handle it.
+                return super.onOptionsItemSelected(item);
+
+        }
     }
 
     @Override
@@ -185,7 +220,6 @@ public class MainActivity extends AppCompatActivity implements DnnServiceCallbac
             usernameEditText.setEnabled(true);
             inputLayout.setVisibility(View.VISIBLE);
             bigUsername.setVisibility(View.GONE);
-            serviceMessage.setText("");
         }
     }
 
@@ -196,6 +230,16 @@ public class MainActivity extends AppCompatActivity implements DnnServiceCallbac
             public void run() {
                 serviceMessage.setText(message);
                 //setupFadeAnimation(serviceMessage, message);
+            }
+        });
+    }
+
+    @Override
+    public void printToLog(final String message) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                serviceLog.setText(message);
             }
         });
     }

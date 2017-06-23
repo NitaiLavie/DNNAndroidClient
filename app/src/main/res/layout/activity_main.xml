@@ -17,8 +17,8 @@
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
         android:elevation="4dp"
-        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+        android:theme="@style/AppTheme"/>
+        <!--app:popupTheme="@style/AppTheme"-->
 
     <LinearLayout
         android:id="@+id/input_layout"
@@ -102,17 +102,34 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
-        <TextView
-            android:id="@+id/service_message"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
             android:layout_gravity="center"
-            android:freezesText="true"
-            android:textSize="22sp"
-            android:textAlignment="center"
-            android:gravity="center_horizontal"
-            android:text=""
-            android:textStyle="bold"/>
+            android:gravity="center_vertical">
+            <TextView
+                android:id="@+id/service_message"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:freezesText="true"
+                android:textSize="22sp"
+                android:textAlignment="center"
+                android:gravity="center_horizontal"
+                android:text=""
+                android:textStyle="bold"/>
+            <TextView
+                android:id="@+id/service_log"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:freezesText="true"
+                android:textSize="12sp"
+                android:textAlignment="viewStart"
+                android:gravity="start"
+                android:text=""
+                android:visibility="gone"/>
+        </LinearLayout>
     </ScrollView>
 
     <View

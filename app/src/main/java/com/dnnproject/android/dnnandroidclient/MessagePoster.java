@@ -6,4 +6,5 @@ package com.dnnproject.android.dnnandroidclient;
 
 public interface MessagePoster {
     void postMessage(String message);
+    void postToLog(String message);
 }

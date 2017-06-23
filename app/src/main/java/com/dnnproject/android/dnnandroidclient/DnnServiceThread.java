@@ -9,6 +9,7 @@ import com.dnnproject.android.dnnandroidclient.tcpclient.TcpClient;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Calendar;
 
 /**
  * Created by nitai on 01/04/17.
@@ -21,6 +22,7 @@ public class DnnServiceThread extends Thread implements MessagePoster {
     private final String mAndroidId;
     private final PowerManager.WakeLock mWakeLock;
     private final File mFilesDir;
+    private String mLog;
     private TcpClient mTcpClient;
     private ClientLogic mClientLogic;
     private DnnServiceCallbacks mServiceCallbacks;
@@ -32,6 +34,7 @@ public class DnnServiceThread extends Thread implements MessagePoster {
         mWakeLock = wakeLock;
         mFilesDir = filesDir;
         mServiceCallbacks = serviceCallbacks;
+        mLog = "";
     }
 
     @Override
@@ -87,9 +90,10 @@ public class DnnServiceThread extends Thread implements MessagePoster {
                     Log.e(TAG, e.getClass().getSimpleName() + " Occured!");
                 }
                 if(this.isInterrupted()) throw new InterruptedException("Thread interrupted!");
-                if(mServiceCallbacks != null) mServiceCallbacks.serverDisconnect();
+
                 if(mServiceCallbacks != null) mServiceCallbacks.printMessage("Sorry, failed to connect to Dnn server! " +
                         "Please check address and try again...");
+                if(mServiceCallbacks != null) mServiceCallbacks.serverDisconnect();
             }
 
             try {
@@ -110,6 +114,8 @@ public class DnnServiceThread extends Thread implements MessagePoster {
                 Log.e(TAG, "Could not stop tcp client!");
                 ioe.printStackTrace();
             }
+            if(mServiceCallbacks != null) mServiceCallbacks.serverDisconnect();
+
         } finally {
             // unlocking the partial wake lock
             mWakeLock.release();
@@ -126,5 +132,14 @@ public class DnnServiceThread extends Thread implements MessagePoster {
     @Override
     public void postMessage(String message) {
         if(mServiceCallbacks != null) mServiceCallbacks.printMessage(message);
+    }
+
+    @Override
+    public void postToLog(String message) {
+        String logEntry = ">>" + Calendar.getInstance().getTime() + ":" +
+                "\n" + message + "\n";
+        mLog = mLog.concat(logEntry);
+        if(mServiceCallbacks != null) mServiceCallbacks.printToLog(mLog);
+
     }
 }

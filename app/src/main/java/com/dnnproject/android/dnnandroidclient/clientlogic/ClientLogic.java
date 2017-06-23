@@ -6,6 +6,7 @@ import com.dnnproject.android.dnnandroidclient.MessagePoster;
 import com.dnnproject.android.dnnandroidclient.downloader.DnnDataDownloader;
 import com.dnnproject.android.dnnandroidclient.tcpclient.DnnMessageTransceiver;
 
+import dnnUtil.dnnMessage.DnnCloseMessage;
 import dnnUtil.dnnMessage.DnnDeltaMessage;
 import dnnUtil.dnnMessage.DnnHelloMessage;
 import dnnUtil.dnnMessage.DnnMessage;
@@ -59,156 +60,174 @@ public class ClientLogic {
         timer.start();
         mMessageTransceiver.sendMessage(new DnnHelloMessage(mAndroidId, "Hello"));
         timer.stop();
-        Log.i(TAG, "sent hello message ("+timer+")");
-
-        while(mRun){
-            if (mThread.isInterrupted()) {
-                throw new InterruptedException("Thread interrupted!");
-            }
-
-            // waiting to get a new DnnModel from server and set up our model
-            postMessage("Dnn client is Idle");
-            DnnMessage inMessage = mMessageTransceiver.getMessage();
-
-            DnnMessage.MessageType messageType = inMessage.getMessageType();
-
-            switch(messageType){
-                case MODEL: {
-                    Log.i(TAG, "Received a new dnn model");
-                    Log.i(TAG, "Creating the model");
-                    timer.start();
-                    DnnModelDescriptor receivedDescriptor = (DnnModelDescriptor) inMessage.getContent();
-                    mModel = new DnnModel(receivedDescriptor);
-                    timer.stop();
-                    mStats.setModelNumber(mModel.getModelVersion());
-                    Log.i(TAG, "Model ready! (" + timer + ")");
-                    Log.i(TAG, "Model number: " + mModel.getModelVersion());
-                    timer.start();
-                    mMessageTransceiver.sendMessage(new DnnReadyMessage(mAndroidId, mModel.getModelVersion()));
-                    timer.stop();
-                    Log.i(TAG, "sent ready message (" + timer + ")");
-                    break;
+        postToLog("sent hello message ("+timer+")");
+        try {
+            while (mRun) {
+                if (mThread.isInterrupted()) {
+                    throw new InterruptedException("Thread interrupted!");
                 }
-                case TRAIN: {
-                    Log.i(TAG, "Received new train message");
-                    DnnBundle bundle = (DnnBundle) inMessage.getContent();
-                    DnnModelDescriptor modelDescriptor = bundle.getModelDescriptor();
-                    Log.i(TAG, "Creating the model");
-                    timer.start();
-                    mModel = new DnnModel(modelDescriptor);
-                    timer.stop();
-                    mStats.setModelNumber(mModel.getModelVersion());
-                    Log.i(TAG, "Model ready! (" + timer + ")");
-                    Log.i(TAG, "Model number: " + mModel.getModelVersion());
 
-                    Log.i(TAG, "Downloading the relevant trainig data from github");
-                    DnnIndex index = bundle.getIndexData();
-                    String[] paths;
-                    timer.start();
-                    try {
-                        paths = mDataDownloader.download(index.getDataSet(), index.getDataType(), index.getDataSize(), index.getDataIndex());
-                    } catch (Exception e) {
-                        Log.e(TAG, "run: faild to download training data: " + e.getMessage());
-                        e.printStackTrace();
-                        //Todo: maybe send an error message
+                // waiting to get a new DnnModel from server and set up our model
+                postMessage("Dnn client is Idle");
+                DnnMessage inMessage = mMessageTransceiver.getMessage();
+
+                DnnMessage.MessageType messageType = inMessage.getMessageType();
+
+                switch (messageType) {
+                    case MODEL: {
+                        postToLog("Received a new dnn model");
+                        postToLog("Creating the model");
+                        timer.start();
+                        DnnModelDescriptor receivedDescriptor = (DnnModelDescriptor) inMessage.getContent();
+                        mModel = new DnnModel(receivedDescriptor);
+                        timer.stop();
+                        mStats.setModelNumber(mModel.getModelVersion());
+                        postToLog("Model ready! (" + timer + ")");
+                        postToLog("Model number: " + mModel.getModelVersion());
+                        timer.start();
+                        mMessageTransceiver.sendMessage(new DnnReadyMessage(mAndroidId, mModel.getModelVersion()));
+                        timer.stop();
+                        postToLog("sent ready message (" + timer + ")");
                         break;
                     }
-                    timer.stop();
-                    Log.i(TAG, "finishd downloading training data from github (" + timer + ")");
-                    Log.i(TAG, "loading downloaded training data to created DnnModel");
-                    postMessage("Training model no. " + mModel.getModelVersion());
-                    mStats.setStartTrainingTime(System.currentTimeMillis());
-                    mStats.setNumberOfTrainedEpochs(1);
-                    timer.start();
-                    mModel.loadTrainingData(paths[0], paths[1], index.getDataSet());
-                    timer.stop();
-                    Log.i(TAG, "Training data is loaded (" + timer + ")");
-                    Log.i(TAG, "Training the model");
-                    timer.start();
-                    mModel.trainModel();
-                    timer.stop();
-                    mStats.setFinishTrainingTime(System.currentTimeMillis());
-                    Log.i(TAG, "Finished training! (" + timer + ")");
-                    timer.start();
-                    mMessageTransceiver.sendMessage(new DnnDeltaMessage(mAndroidId, mModel.getDeltaData()));
-                    timer.stop();
-                    Log.i(TAG, "sent new delta to the server (" + timer + ")");
-                    timer.start();
-                    mMessageTransceiver.sendMessage(new DnnStatisticsMessage(mAndroidId, mStats));
-                    timer.stop();
-                    Log.i(TAG, "send latest statistics to the server (" + timer + ")");
-                    break;
-                }
-                case VALIDATE: {
-                    Log.i(TAG, "Received new validate message");
-                    DnnBundle bundle = (DnnBundle) inMessage.getContent();
-                    DnnModelDescriptor modelDescriptor = bundle.getModelDescriptor();
-                    Log.i(TAG, "Creating the model");
-                    timer.start();
-                    mModel = new DnnModel(modelDescriptor);
-                    timer.stop();
-                    mStats.setModelNumber(mModel.getModelVersion());
-                    Log.i(TAG, "Model ready! (" + timer + ")");
-                    Log.i(TAG, "Model number: " + mModel.getModelVersion());
+                    case TRAIN: {
+                        postToLog("Received new train message");
+                        DnnBundle bundle = (DnnBundle) inMessage.getContent();
+                        DnnModelDescriptor modelDescriptor = bundle.getModelDescriptor();
+                        postToLog("Creating the model");
+                        timer.start();
+                        mModel = new DnnModel(modelDescriptor);
+                        timer.stop();
+                        mStats.setModelNumber(mModel.getModelVersion());
+                        postToLog("Model ready! (" + timer + ")");
+                        postToLog("Model number: " + mModel.getModelVersion());
 
-                    Log.i(TAG, "Downloading the relevant validation data from github");
-                    DnnIndex index = bundle.getIndexData();
-                    String[] paths;
-                    timer.start();
-                    try {
-                        paths = mDataDownloader.download(index.getDataSet(), index.getDataType(), index.getDataSize(), index.getDataIndex());
-                    } catch (Exception e) {
-                        Log.e(TAG, "run: faild to download validation data: " + e.getMessage());
-                        e.printStackTrace();
-                        //Todo: maybe send an error message
+                        postToLog("Downloading the relevant trainig data from github");
+                        DnnIndex index = bundle.getIndexData();
+                        String[] paths;
+                        timer.start();
+                        try {
+                            paths = mDataDownloader.download(index.getDataSet(), index.getDataType(), index.getDataSize(), index.getDataIndex());
+                        } catch (Exception e) {
+                            Log.e(TAG, "run: faild to download training data: " + e.getMessage());
+                            e.printStackTrace();
+                            //Todo: maybe send an error message
+                            break;
+                        }
+                        timer.stop();
+                        postToLog("finishd downloading training data from github (" + timer + ")");
+                        postToLog("loading downloaded training data to created DnnModel");
+                        postMessage("Training model no. " + mModel.getModelVersion());
+                        mStats.setStartTrainingTime(System.currentTimeMillis());
+                        mStats.setNumberOfTrainedEpochs(1);
+                        timer.start();
+                        mModel.loadTrainingData(paths[0], paths[1], index.getDataSet());
+                        timer.stop();
+                        postToLog("Training data is loaded (" + timer + ")");
+                        postToLog("Training the model");
+                        timer.start();
+                        mModel.trainModel();
+                        timer.stop();
+                        mStats.setFinishTrainingTime(System.currentTimeMillis());
+                        postToLog("Finished training! (" + timer + ")");
+                        timer.start();
+                        mMessageTransceiver.sendMessage(new DnnDeltaMessage(mAndroidId, mModel.getDeltaData()));
+                        timer.stop();
+                        postToLog("sent new delta to the server (" + timer + ")");
+                        timer.start();
+                        mMessageTransceiver.sendMessage(new DnnStatisticsMessage(mAndroidId, mStats));
+                        timer.stop();
+                        postToLog("send latest statistics to the server (" + timer + ")");
                         break;
                     }
-                    timer.stop();
-                    Log.i(TAG, "finished downloading validation data from github (" + timer + ")");
-                    Log.i(TAG, "loading downloaded validation data to created DnnModel");
-                    postMessage("Validating model no. " + mModel.getModelVersion());
-                    mStats.setStartTrainingTime(System.currentTimeMillis());
-                    mStats.setNumberOfTrainedEpochs(1);
-                    timer.start();
-                    mModel.loadTrainingData(paths[0], paths[1], index.getDataSet());
-                    timer.stop();
-                    Log.i(TAG, "validation data is loaded (" + timer + ")");
-                    Log.i(TAG, "validating the model");
-                    timer.start();
-                    DnnValidationResult validationResult = mModel.validateModel();
-                    timer.stop();
-                    mStats.setFinishTrainingTime(System.currentTimeMillis());
-                    Log.i(TAG, "Finished validating! (" + timer + ")");
-                    Log.i(TAG, "Model Accuracy = "+validationResult.getAccuracy() + "%");
-                    timer.start();
-                    mMessageTransceiver.sendMessage(new DnnValidationResultMessage(mAndroidId,validationResult));
-                    timer.stop();
-                    Log.i(TAG, "sent validation results to the server (" + timer + ")");
-                    timer.start();
-                    mMessageTransceiver.sendMessage(new DnnStatisticsMessage(mAndroidId, mStats));
-                    timer.stop();
-                    Log.i(TAG, "send latest statistics to the server (" + timer + ")");
-                    break;
+                    case VALIDATE: {
+                        postToLog("Received new validate message");
+                        DnnBundle bundle = (DnnBundle) inMessage.getContent();
+                        DnnModelDescriptor modelDescriptor = bundle.getModelDescriptor();
+                        postToLog("Creating the model");
+                        timer.start();
+                        mModel = new DnnModel(modelDescriptor);
+                        timer.stop();
+                        mStats.setModelNumber(mModel.getModelVersion());
+                        postToLog("Model ready! (" + timer + ")");
+                        postToLog("Model number: " + mModel.getModelVersion());
+
+                        postToLog("Downloading the relevant validation data from github");
+                        DnnIndex index = bundle.getIndexData();
+                        String[] paths;
+                        timer.start();
+                        try {
+                            paths = mDataDownloader.download(index.getDataSet(), index.getDataType(), index.getDataSize(), index.getDataIndex());
+                        } catch (Exception e) {
+                            Log.e(TAG, "run: faild to download validation data: " + e.getMessage());
+                            e.printStackTrace();
+                            //Todo: maybe send an error message
+                            break;
+                        }
+                        timer.stop();
+                        postToLog("finished downloading validation data from github (" + timer + ")");
+                        postToLog("loading downloaded validation data to created DnnModel");
+                        postMessage("Validating model no. " + mModel.getModelVersion());
+                        mStats.setStartTrainingTime(System.currentTimeMillis());
+                        mStats.setNumberOfTrainedEpochs(1);
+                        timer.start();
+                        mModel.loadTrainingData(paths[0], paths[1], index.getDataSet());
+                        timer.stop();
+                        postToLog("validation data is loaded (" + timer + ")");
+                        postToLog("validating the model");
+                        timer.start();
+                        DnnValidationResult validationResult = mModel.validateModel();
+                        timer.stop();
+                        mStats.setFinishTrainingTime(System.currentTimeMillis());
+                        postToLog("Finished validating! (" + timer + ")");
+                        postToLog("Model Accuracy = " + validationResult.getAccuracy() + "%");
+                        timer.start();
+                        mMessageTransceiver.sendMessage(new DnnValidationResultMessage(mAndroidId, validationResult));
+                        timer.stop();
+                        postToLog("sent validation results to the server (" + timer + ")");
+                        timer.start();
+                        mMessageTransceiver.sendMessage(new DnnStatisticsMessage(mAndroidId, mStats));
+                        timer.stop();
+                        postToLog("send latest statistics to the server (" + timer + ")");
+                        break;
+                    }
+                    case WEIGHTS: {
+                        postToLog("Received new model weights");
+                        postToLog("Setting new weights to new model");
+                        timer.start();
+                        mModel.setWeightsData((DnnWeightsData) inMessage.getContent());
+                        timer.stop();
+                        postToLog("set new weights (" + timer + ")");
+                        timer.start();
+                        mMessageTransceiver.sendMessage(new DnnReadyMessage(mAndroidId, mModel.getModelVersion()));
+                        timer.stop();
+                        postToLog("sent ready message (" + timer + ")");
+                        break;
+                    }
+                    case CLOSE: {
+                        postToLog("Received close message");
+                        postMessage("Server Closed Connection,\n" +
+                                "Thank You for you participation!");
+                        throw new InterruptedException("Server closed connection");
+                    }
+                    default: {
+                    }
                 }
-                case WEIGHTS: {
-                    Log.i(TAG, "Received new model weights");
-                    Log.i(TAG, "Setting new weights to new model");
-                    timer.start();
-                    mModel.setWeightsData((DnnWeightsData) inMessage.getContent());
-                    timer.stop();
-                    Log.i(TAG, "set new weights (" + timer + ")");
-                    timer.start();
-                    mMessageTransceiver.sendMessage(new DnnReadyMessage(mAndroidId, mModel.getModelVersion()));
-                    timer.stop();
-                    Log.i(TAG, "sent ready message (" + timer + ")");
-                    break;
-                }
-                default:{}
             }
+        } catch (InterruptedException e) {
+            timer.start();
+            mMessageTransceiver.sendMessage(new DnnCloseMessage(mAndroidId, "close"));
+            timer.stop();
+            postToLog("sent close message (" + timer + ")");
+            throw e;
         }
     }
 
     private void postMessage(String message){
         mMessagePoster.postMessage(message);
+    }
+    private void postToLog(String message){
+        Log.i(TAG, message);
+        mMessagePoster.postToLog(message);
     }
 }
