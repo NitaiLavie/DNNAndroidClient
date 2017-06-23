@@ -15,7 +15,7 @@
 
     <string name="notification_title">DNN client Service</string>
     <string name="notification_message">Running a DNN client</string>
-    <string name="ticker_text">DNNService</string>
+    <string name="ticker_text">AndroidDnnClient</string>
 
     <string name="toast_start">Started DNN client</string>
     <string name="toast_stop">Stoped DNN client</string>
@@ -29,6 +29,7 @@
 
     <string name="toast_username">Please enter a valid username</string>
     <string name="dnn_client_stoped">Dnn client stopped!</string>
+    <string name="action_settings">settings</string>
 
 
 </resources>

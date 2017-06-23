@@ -9,6 +9,8 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.Button;
@@ -27,6 +29,8 @@ public class MainActivity extends AppCompatActivity implements DnnServiceCallbac
     private SharedPreferences.Editor mPrefsEditor;
 
     private Toast mToast;
+
+    private Toolbar mToolbar;
 
     private LinearLayout inputLayout;
 
@@ -72,6 +76,9 @@ public class MainActivity extends AppCompatActivity implements DnnServiceCallbac
 
         mToast = Toast.makeText(this,"",Toast.LENGTH_SHORT);
 
+        mToolbar = (Toolbar) findViewById(R.id.dnn_toolbar);
+        setSupportActionBar(mToolbar);
+
         inputLayout = (LinearLayout) findViewById(R.id.input_layout);
 
         ipTitleText = (TextView) findViewById(R.id.ip_title_text);
@@ -89,6 +96,13 @@ public class MainActivity extends AppCompatActivity implements DnnServiceCallbac
 
 
         this.setLayout();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
     }
 
     @Override

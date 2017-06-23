@@ -9,17 +9,12 @@ import com.dnnproject.android.dnnandroidclient.tcpclient.TcpClient;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InterruptedIOException;
-
-import dnnUtil.dnnModel.DnnModel;
-import dnnUtil.dnnModel.DnnModelDescriptor;
-import dnnUtil.dnnModel.DnnModelParameters;
 
 /**
  * Created by nitai on 01/04/17.
  */
 
-public class DnnServiceThread extends Thread {
+public class DnnServiceThread extends Thread implements MessagePoster {
     private static final String TAG = "DnnServiceThread";
 
     private final String mDnnServerIP;
@@ -75,7 +70,7 @@ public class DnnServiceThread extends Thread {
         try {
             mTcpClient = new TcpClient(mDnnServerIP);
             DnnDataDownloader dataDownloader = new DnnDataDownloader(mFilesDir);
-            mClientLogic = new ClientLogic(this, mTcpClient, dataDownloader, mAndroidId);
+            mClientLogic = new ClientLogic(this, mTcpClient, dataDownloader, mAndroidId, this);
 
             try {
                 if(mServiceCallbacks != null) mServiceCallbacks.printMessage("Connecting to Dnn server...");
@@ -128,4 +123,8 @@ public class DnnServiceThread extends Thread {
         mServiceCallbacks = null;
     }
 
+    @Override
+    public void postMessage(String message) {
+        if(mServiceCallbacks != null) mServiceCallbacks.printMessage(message);
+    }
 }

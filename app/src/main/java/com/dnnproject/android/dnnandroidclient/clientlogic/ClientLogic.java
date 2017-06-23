@@ -2,6 +2,7 @@ package com.dnnproject.android.dnnandroidclient.clientlogic;
 
 import android.util.Log;
 
+import com.dnnproject.android.dnnandroidclient.MessagePoster;
 import com.dnnproject.android.dnnandroidclient.downloader.DnnDataDownloader;
 import com.dnnproject.android.dnnandroidclient.tcpclient.DnnMessageTransceiver;
 
@@ -10,15 +11,11 @@ import dnnUtil.dnnMessage.DnnHelloMessage;
 import dnnUtil.dnnMessage.DnnMessage;
 import dnnUtil.dnnMessage.DnnReadyMessage;
 import dnnUtil.dnnMessage.DnnStatisticsMessage;
-import dnnUtil.dnnMessage.DnnValidationMessage;
 import dnnUtil.dnnMessage.DnnValidationResultMessage;
-import dnnUtil.dnnMessage.DnnWeightsMessage;
 import dnnUtil.dnnModel.DnnBundle;
 import dnnUtil.dnnModel.DnnIndex;
 import dnnUtil.dnnModel.DnnModel;
 import dnnUtil.dnnModel.DnnModelDescriptor;
-import dnnUtil.dnnModel.DnnModelParameters;
-import dnnUtil.dnnModel.DnnTrainingData;
 import dnnUtil.dnnModel.DnnWeightsData;
 import dnnUtil.dnnStatistics.DnnStatistics;
 import dnnUtil.dnnStatistics.DnnValidationResult;
@@ -35,15 +32,17 @@ public class ClientLogic {
     private final DnnDataDownloader mDataDownloader;
     private final Thread mThread;
     private final String mAndroidId;
+    private final MessagePoster mMessagePoster;
     private boolean mRun;
-    DnnModel mModel;
-    DnnStatistics mStats;
+    private DnnModel mModel;
+    private DnnStatistics mStats;
 
-    public ClientLogic(Thread thread, DnnMessageTransceiver messageTransceiver, DnnDataDownloader dataDownloader, String androidId){
+    public ClientLogic(Thread thread, DnnMessageTransceiver messageTransceiver, DnnDataDownloader dataDownloader, String androidId, MessagePoster messagePoster){
         mThread = thread;
         mMessageTransceiver = messageTransceiver;
         mDataDownloader = dataDownloader;
         mAndroidId = androidId;
+        mMessagePoster = messagePoster;
         mRun = false;
         mStats = new DnnStatistics();
         mStats.setClientName(mAndroidId);
@@ -68,6 +67,7 @@ public class ClientLogic {
             }
 
             // waiting to get a new DnnModel from server and set up our model
+            postMessage("Dnn client is Idle");
             DnnMessage inMessage = mMessageTransceiver.getMessage();
 
             DnnMessage.MessageType messageType = inMessage.getMessageType();
@@ -116,6 +116,7 @@ public class ClientLogic {
                     timer.stop();
                     Log.i(TAG, "finishd downloading training data from github (" + timer + ")");
                     Log.i(TAG, "loading downloaded training data to created DnnModel");
+                    postMessage("Training model no. " + mModel.getModelVersion());
                     mStats.setStartTrainingTime(System.currentTimeMillis());
                     mStats.setNumberOfTrainedEpochs(1);
                     timer.start();
@@ -165,6 +166,7 @@ public class ClientLogic {
                     timer.stop();
                     Log.i(TAG, "finished downloading validation data from github (" + timer + ")");
                     Log.i(TAG, "loading downloaded validation data to created DnnModel");
+                    postMessage("Validating model no. " + mModel.getModelVersion());
                     mStats.setStartTrainingTime(System.currentTimeMillis());
                     mStats.setNumberOfTrainedEpochs(1);
                     timer.start();
@@ -204,5 +206,9 @@ public class ClientLogic {
                 default:{}
             }
         }
+    }
+
+    private void postMessage(String message){
+        mMessagePoster.postMessage(message);
     }
 }
