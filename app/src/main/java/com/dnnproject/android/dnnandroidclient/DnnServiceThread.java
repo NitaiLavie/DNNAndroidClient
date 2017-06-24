@@ -146,4 +146,14 @@ public class DnnServiceThread extends Thread implements Poster {
         if(mServiceCallbacks != null) mServiceCallbacks.serverDisconnect();
         else mApp.setServerDisconnected(true);
     }
+
+    @Override
+    public boolean isBatteryCharging() {
+        return mApp.isBatteyCharging();
+    }
+
+    @Override
+    public float getBatteryLevel() {
+        return mApp.getBatteryLevel();
+    }
 }

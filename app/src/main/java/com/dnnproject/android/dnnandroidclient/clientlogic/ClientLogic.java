@@ -92,6 +92,8 @@ public class ClientLogic {
                     }
                     case TRAIN: {
                         postToLog("Received new train message");
+                        mStats.setTask("training");
+                        mStats.setIsChargin(mPoster.isBatteryCharging());
                         DnnBundle bundle = (DnnBundle) inMessage.getContent();
                         DnnModelDescriptor modelDescriptor = bundle.getModelDescriptor();
                         postToLog("Creating the model");
@@ -118,6 +120,7 @@ public class ClientLogic {
                         postToLog("finishd downloading training data from github (" + timer + ")");
                         postToLog("loading downloaded training data to created DnnModel");
                         postMessage("Training model no. " + mModel.getModelVersion());
+                        mStats.setStartBatteryLevel(mPoster.getBatteryLevel());
                         mStats.setStartTrainingTime(System.currentTimeMillis());
                         mStats.setNumberOfTrainedEpochs(1);
                         timer.start();
@@ -129,6 +132,7 @@ public class ClientLogic {
                         mModel.trainModel();
                         timer.stop();
                         mStats.setFinishTrainingTime(System.currentTimeMillis());
+                        mStats.setFinishBatteryLevel(mPoster.getBatteryLevel());
                         postToLog("Finished training! (" + timer + ")");
                         timer.start();
                         mMessageTransceiver.sendMessage(new DnnDeltaMessage(mAndroidId, mModel.getDeltaData()));
@@ -142,6 +146,8 @@ public class ClientLogic {
                     }
                     case VALIDATE: {
                         postToLog("Received new validate message");
+                        mStats.setTask("validating");
+                        mStats.setIsChargin(mPoster.isBatteryCharging());
                         DnnBundle bundle = (DnnBundle) inMessage.getContent();
                         DnnModelDescriptor modelDescriptor = bundle.getModelDescriptor();
                         postToLog("Creating the model");
@@ -168,6 +174,7 @@ public class ClientLogic {
                         postToLog("finished downloading validation data from github (" + timer + ")");
                         postToLog("loading downloaded validation data to created DnnModel");
                         postMessage("Validating model no. " + mModel.getModelVersion());
+                        mStats.setStartBatteryLevel(mPoster.getBatteryLevel());
                         mStats.setStartTrainingTime(System.currentTimeMillis());
                         mStats.setNumberOfTrainedEpochs(1);
                         timer.start();
@@ -179,6 +186,7 @@ public class ClientLogic {
                         DnnValidationResult validationResult = mModel.validateModel();
                         timer.stop();
                         mStats.setFinishTrainingTime(System.currentTimeMillis());
+                        mStats.setFinishBatteryLevel(mPoster.getBatteryLevel());
                         postToLog("Finished validating! (" + timer + ")");
                         postToLog("Model Accuracy = " + validationResult.getAccuracy() + "%");
                         timer.start();

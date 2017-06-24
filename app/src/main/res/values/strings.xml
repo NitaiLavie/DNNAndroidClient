@@ -34,22 +34,28 @@
     <string name="about_done">Done</string>
     <string name="about_cancel">Cancel</string>
     <string name="about_title">About DNNAndroidClient</string>
-    <string name="about_text">
-        "About the project:"
-        "\nDNNAndroidClient is a project made for the Technion."
-        "\nIt adresses the chalenges of Deep learning on resource limited environment."
-        "\nDNN stands for \"Distributed Neural Networks\"."
+    <string name="about_text"><b>"About the app:</b>
+        "\nDnnAndroidClient is a part of a student project in distributed deep learning "
+        "made for the NSSL lab at the EE faculty at the Technion institute. "
+        "Any android connected to the server running the app contributes to a distributed network. "
+        "This network preforms model training for image recognition. "
+        "The deep learning library driving the app is the open source \'tiny-dnn\' library. "
+        "DNN stands for \"Deep Neural Network\"."
         "\n"
-        "\nAbout us:"
-        "\ndfglkjsdfghlkjsdfg"
-        "\nlksdjfglkr fdlkdfs dflkjfg dfsg"
-        "\nlkjdsfg lkjdfsg lkjdfsg lkjfg lkjdsfg"
-        "\nfsdgkljdfsgkjl fg lkjsd glkjsdf"
-        "\nfds gkljdfsg lkjfsg lkjdfs"
+        <b>"\nAbout us:"</b>
+        "\nWe're a couple of students from the EE faculty in the Technion institute. "
+        "We've taken a project within the NSSL lab. "
+        "Our supervisor was Roman K."
         "\nThat's it!!"
         "\n"
-        "\nVersion:"
-        "\n1.01.2a"
+        <b>"\nVersion:"</b>
+        "\n1.02"
+        "\n"
+        <b>"\nLinks:"</b>
+        "\nNSSL lab:"
+        "\nhttp://nssl.eew.technion.ac.il"
+        "\ntiny-dnn on github:"
+        "\nhttps://github.com/tiny-dnn/tiny-dnn"
     </string>
     <string name="action_log_toggle">Toggle Log</string>
 

@@ -117,11 +117,6 @@ public class MainActivity extends AppCompatActivity implements DnnServiceCallbac
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_about:
-                // User chose the "About" item, show the app about dialog...
-                DnnAboutDialogFragment aboutDialog = new DnnAboutDialogFragment();
-                aboutDialog.show(getSupportFragmentManager(),"about");
-                return true;
 
             case R.id.action_log_toggle:
                 // User chose the "Toggle Log" action, toggle log...
@@ -134,6 +129,12 @@ public class MainActivity extends AppCompatActivity implements DnnServiceCallbac
                     serviceMessage.setVisibility(View.GONE);
                     serviceLog.setVisibility(View.VISIBLE);
                 }
+                return true;
+
+            case R.id.action_about:
+                // User chose the "About" item, show the app about dialog...
+                DnnAboutDialogFragment aboutDialog = new DnnAboutDialogFragment();
+                aboutDialog.show(getSupportFragmentManager(),"about");
                 return true;
 
             default:
