@@ -206,8 +206,8 @@ public class ClientLogic {
                     }
                     case CLOSE: {
                         postToLog("Received close message");
-                        postMessage("Server Closed Connection,\n" +
-                                "Thank You for you participation!");
+                        postMessage("Server closed connection,\n" +
+                                "Thank you for your participation!");
                         throw new InterruptedException("Server closed connection");
                     }
                     default: {
