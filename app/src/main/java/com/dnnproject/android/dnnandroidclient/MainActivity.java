@@ -28,6 +28,8 @@ import static android.support.v7.appcompat.R.id.wrap_content;
 public class MainActivity extends AppCompatActivity implements DnnServiceCallbacks {
     private static final String TAG = "MainActivity";
 
+    private DnnApplication mApp;
+
     private SharedPreferences mPrefs;
     private SharedPreferences.Editor mPrefsEditor;
 
@@ -51,16 +53,16 @@ public class MainActivity extends AppCompatActivity implements DnnServiceCallbac
     private TextView serviceText;
     private Button serviceButton;
 
-    private static boolean dnnServiceStarted = false;
-
+    private boolean dnnServiceStarted = false;
     private boolean mServiceBound = false;
+
     private DnnService mDnnService;
 
     private ServiceConnection mServiceConnection = new ServiceConnection() {
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            mServiceBound = false;
+            mApp.setServiceBound(false);
         }
 
         @Override
@@ -69,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements DnnServiceCallbac
             mDnnService = myBinder.getService();
             mDnnService.setCallbacks(MainActivity.this);
             mDnnService.startMainThread();
-            mServiceBound = true;
+            mApp.setServiceBound(true);
         }
     };
 
@@ -77,6 +79,8 @@ public class MainActivity extends AppCompatActivity implements DnnServiceCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mApp = (DnnApplication) this.getApplication();
 
         mToast = Toast.makeText(this,"",Toast.LENGTH_SHORT);
 
@@ -143,10 +147,10 @@ public class MainActivity extends AppCompatActivity implements DnnServiceCallbac
     @Override
     protected void onResume(){
         super.onResume();
-        if(dnnServiceStarted){
+        if(mApp.isDnnServiceStarted()){
             Intent intent = new Intent(this, DnnService.class);
             bindService(intent,mServiceConnection, Context.BIND_AUTO_CREATE);
-            mServiceBound = true;
+            mApp.setServiceBound(true);
         }
         mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         mPrefsEditor = mPrefs.edit();
@@ -154,13 +158,23 @@ public class MainActivity extends AppCompatActivity implements DnnServiceCallbac
         ipEditText.setText(mPrefs.getString(getText(R.string.PrefSavedIP).toString(),""));
         usernameEditText.setText(mPrefs.getString(getText(R.string.PrefSavedUsername).toString(),""));
         bigUsername.setText(mPrefs.getString(getText(R.string.PrefSavedUsername).toString(),""));
+
+        serviceMessage.setText(mApp.getServiceMessage());
+        serviceLog.setText(mApp.getLog());
+
+        if(mApp.isServerDisconnected()){
+            serverDisconnect();
+            mApp.setServerDisconnected(false);
+        } else {
+            setLayout();
+        }
     }
 
     @Override
     protected void onPause(){
-        if (mServiceBound) {
+        if (mApp.isServiceBound()) {
             unbindService(mServiceConnection);
-            mServiceBound = false;
+            mApp.setServiceBound(false);
         }
         super.onPause();
         mPrefsEditor.putString(getText(R.string.PrefSavedIP).toString(), ipEditText.getText().toString());
@@ -176,8 +190,18 @@ public class MainActivity extends AppCompatActivity implements DnnServiceCallbac
             mToast.setText(getText(R.string.toast_username));
             mToast.show();
         } else {
-            if(dnnServiceStarted == false) {
-                dnnServiceStarted = true;
+            if(mApp.isDnnServiceStarted()) {
+                mApp.setDnnServiceStarted(false);
+                if (mApp.isServiceBound()) {
+                    unbindService(mServiceConnection);
+                    mApp.setServiceBound(false);
+                }
+                stopService(intent);
+                mToast.setText(getText(R.string.toast_stop));
+                mToast.show();
+
+            } else {
+                mApp.setDnnServiceStarted(true);
                 // send the ip address to the DnnService
                 intent.putExtra(DnnService.IP, ipEditText.getText().toString());
                 intent.putExtra(DnnService.USERNAME, usernameEditText.getText().toString());
@@ -186,22 +210,13 @@ public class MainActivity extends AppCompatActivity implements DnnServiceCallbac
                 mToast.setText(getText(R.string.toast_start));
                 mToast.show();
                 bindService(intent,mServiceConnection, Context.BIND_AUTO_CREATE);
-            } else {
-                dnnServiceStarted = false;
-                if (mServiceBound) {
-                    unbindService(mServiceConnection);
-                    mServiceBound = false;
-                }
-                stopService(intent);
-                mToast.setText(getText(R.string.toast_stop));
-                mToast.show();
             }
             this.setLayout();
         }
     }
 
     private void setLayout(){
-        if(dnnServiceStarted == true){
+        if(mApp.isDnnServiceStarted()){
             serviceButton.setText(getText(R.string.button_stop));
             serviceText.setText(getText(R.string.text_stop));
             ipTitleText.setText(getText(R.string.current_ip_text));
@@ -249,7 +264,7 @@ public class MainActivity extends AppCompatActivity implements DnnServiceCallbac
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if(dnnServiceStarted == true) {
+                if(mApp.isDnnServiceStarted()) {
                     serviceButton.callOnClick();
                 }
             }

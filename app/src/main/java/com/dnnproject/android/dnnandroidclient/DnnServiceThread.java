@@ -9,32 +9,31 @@ import com.dnnproject.android.dnnandroidclient.tcpclient.TcpClient;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Calendar;
 
 /**
  * Created by nitai on 01/04/17.
  */
 
-public class DnnServiceThread extends Thread implements MessagePoster {
+public class DnnServiceThread extends Thread implements Poster {
     private static final String TAG = "DnnServiceThread";
 
     private final String mDnnServerIP;
     private final String mAndroidId;
     private final PowerManager.WakeLock mWakeLock;
     private final File mFilesDir;
-    private String mLog;
     private TcpClient mTcpClient;
     private ClientLogic mClientLogic;
     private DnnServiceCallbacks mServiceCallbacks;
+    private final DnnApplication mApp;
 
-    public DnnServiceThread(DnnServiceCallbacks serviceCallbacks, String dnnServerIP, PowerManager.WakeLock wakeLock, String androidId, File filesDir){
+    public DnnServiceThread(DnnApplication app, DnnServiceCallbacks serviceCallbacks, String dnnServerIP, PowerManager.WakeLock wakeLock, String androidId, File filesDir){
         super();
         mDnnServerIP = dnnServerIP;
         mAndroidId = androidId;
         mWakeLock = wakeLock;
         mFilesDir = filesDir;
         mServiceCallbacks = serviceCallbacks;
-        mLog = "";
+        mApp = app;
     }
 
     @Override
@@ -76,10 +75,10 @@ public class DnnServiceThread extends Thread implements MessagePoster {
             mClientLogic = new ClientLogic(this, mTcpClient, dataDownloader, mAndroidId, this);
 
             try {
-                if(mServiceCallbacks != null) mServiceCallbacks.printMessage("Connecting to Dnn server...");
+                postMessage("Connecting to Dnn server...");
                 mTcpClient.start();
                 if(this.isInterrupted()) throw new InterruptedException("Thread interrupted!");
-                if(mServiceCallbacks != null) mServiceCallbacks.printMessage("Connected Successfully!\n" +
+                postMessage("Connected Successfully!\n" +
                         "Dnn client is Running!");
                 mClientLogic.run();
 
@@ -91,9 +90,9 @@ public class DnnServiceThread extends Thread implements MessagePoster {
                 }
                 if(this.isInterrupted()) throw new InterruptedException("Thread interrupted!");
 
-                if(mServiceCallbacks != null) mServiceCallbacks.printMessage("Sorry, failed to connect to Dnn server! " +
+                postMessage("Sorry, failed to connect to Dnn server! " +
                         "Please check address and try again...");
-                if(mServiceCallbacks != null) mServiceCallbacks.serverDisconnect();
+                serverDisconnect();
             }
 
             try {
@@ -114,7 +113,7 @@ public class DnnServiceThread extends Thread implements MessagePoster {
                 Log.e(TAG, "Could not stop tcp client!");
                 ioe.printStackTrace();
             }
-            if(mServiceCallbacks != null) mServiceCallbacks.serverDisconnect();
+            serverDisconnect();
 
         } finally {
             // unlocking the partial wake lock
@@ -131,15 +130,20 @@ public class DnnServiceThread extends Thread implements MessagePoster {
 
     @Override
     public void postMessage(String message) {
+        mApp.setServiceMessage(message);
         if(mServiceCallbacks != null) mServiceCallbacks.printMessage(message);
     }
 
     @Override
     public void postToLog(String message) {
-        String logEntry = ">>" + Calendar.getInstance().getTime() + ":" +
-                "\n" + message + "\n";
-        mLog = mLog.concat(logEntry);
-        if(mServiceCallbacks != null) mServiceCallbacks.printToLog(mLog);
+        mApp.logLog(message);
+        if(mServiceCallbacks != null) mServiceCallbacks.printToLog(mApp.getLog());
 
+    }
+
+    @Override
+    public void serverDisconnect() {
+        if(mServiceCallbacks != null) mServiceCallbacks.serverDisconnect();
+        else mApp.setServerDisconnected(true);
     }
 }

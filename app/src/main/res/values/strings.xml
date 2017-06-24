@@ -9,7 +9,7 @@
 
     <string name="enter_ip_text">Enter DNN server IP</string>
     <string name="current_ip_text">Current DNN server IP:</string>
-    <string name="HintIP">default: 109.67.204.221</string>
+    <string name="HintIP">default: 79.181.131.28</string>
 
     <string name="dnn_service_name">DNNService</string>
 

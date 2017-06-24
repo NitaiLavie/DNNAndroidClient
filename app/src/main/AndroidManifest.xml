@@ -8,6 +8,7 @@
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
 
     <application
+        android:name=".DnnApplication"
         android:allowBackup="true"
         android:largeHeap="true"
         android:icon="@mipmap/hamster_cogwheel"

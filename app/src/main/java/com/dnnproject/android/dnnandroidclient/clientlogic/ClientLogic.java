@@ -2,7 +2,7 @@ package com.dnnproject.android.dnnandroidclient.clientlogic;
 
 import android.util.Log;
 
-import com.dnnproject.android.dnnandroidclient.MessagePoster;
+import com.dnnproject.android.dnnandroidclient.Poster;
 import com.dnnproject.android.dnnandroidclient.downloader.DnnDataDownloader;
 import com.dnnproject.android.dnnandroidclient.tcpclient.DnnMessageTransceiver;
 
@@ -33,17 +33,17 @@ public class ClientLogic {
     private final DnnDataDownloader mDataDownloader;
     private final Thread mThread;
     private final String mAndroidId;
-    private final MessagePoster mMessagePoster;
+    private final Poster mPoster;
     private boolean mRun;
     private DnnModel mModel;
     private DnnStatistics mStats;
 
-    public ClientLogic(Thread thread, DnnMessageTransceiver messageTransceiver, DnnDataDownloader dataDownloader, String androidId, MessagePoster messagePoster){
+    public ClientLogic(Thread thread, DnnMessageTransceiver messageTransceiver, DnnDataDownloader dataDownloader, String androidId, Poster poster){
         mThread = thread;
         mMessageTransceiver = messageTransceiver;
         mDataDownloader = dataDownloader;
         mAndroidId = androidId;
-        mMessagePoster = messagePoster;
+        mPoster = poster;
         mRun = false;
         mStats = new DnnStatistics();
         mStats.setClientName(mAndroidId);
@@ -224,10 +224,10 @@ public class ClientLogic {
     }
 
     private void postMessage(String message){
-        mMessagePoster.postMessage(message);
+        mPoster.postMessage(message);
     }
     private void postToLog(String message){
         Log.i(TAG, message);
-        mMessagePoster.postToLog(message);
+        mPoster.postToLog(message);
     }
 }

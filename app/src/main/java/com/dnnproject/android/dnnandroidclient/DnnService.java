@@ -28,7 +28,7 @@ public class DnnService extends Service {
     public static final String IP = "ip";
     public static final String USERNAME = "username";
 
-    private static final String DefaultIP = "109.67.204.221";
+    private static final String DefaultIP = "79.181.131.28";
     private static final String DefaultUsername = "foobarbaz";
 
     private final IBinder mBinder = new DNNServiceBinder();
@@ -128,7 +128,7 @@ public class DnnService extends Service {
             PowerManager mgr = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
             PowerManager.WakeLock wakeLock = mgr.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "DnnWakeLock");
             // creating the main service thread
-            mMainThread = new DnnServiceThread(mServiceCallbacks, mDnnServerIP, wakeLock, androidId + "." + mClientUsername, filesDir);
+            mMainThread = new DnnServiceThread((DnnApplication)getApplication(), mServiceCallbacks, mDnnServerIP, wakeLock, androidId + "." + mClientUsername, filesDir);
         }
         if(!mMainThread.isAlive()){
             // Starting main service thread:
