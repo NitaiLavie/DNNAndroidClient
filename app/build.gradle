@@ -22,7 +22,7 @@ android {
                             '-DANDROID_TOOLCHAIN=clang',
                             '-DANDROID_CPP_FEATURES=rtti exceptions',
                             '-DANDROID_STL=c++_static'
-                cppFlags "-std=c++11 -frtti -fexceptions -fPIC"
+                cppFlags "-std=c++14 -frtti -fexceptions -fPIC"
             }
         }
     }
