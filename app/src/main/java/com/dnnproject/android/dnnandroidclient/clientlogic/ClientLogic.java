@@ -104,7 +104,8 @@ public class ClientLogic {
                         postToLog("Model ready! (" + timer + ")");
                         postToLog("Model number: " + mModel.getModelVersion());
 
-                        postToLog("Downloading the relevant trainig data from github");
+                        postToLog("Downloading the relevant trainig data from file server");
+                        postMessage("Downloading training files");
                         DnnIndex index = bundle.getIndexData();
                         String[] paths;
                         timer.start();
@@ -117,7 +118,7 @@ public class ClientLogic {
                             break;
                         }
                         timer.stop();
-                        postToLog("finishd downloading training data from github (" + timer + ")");
+                        postToLog("finishd downloading training data from file server (" + timer + ")");
                         postToLog("loading downloaded training data to created DnnModel");
                         postMessage("Training model no. " + mModel.getModelVersion());
                         mStats.setStartBatteryLevel(mPoster.getBatteryLevel());
@@ -158,7 +159,8 @@ public class ClientLogic {
                         postToLog("Model ready! (" + timer + ")");
                         postToLog("Model number: " + mModel.getModelVersion());
 
-                        postToLog("Downloading the relevant validation data from github");
+                        postToLog("Downloading the relevant validation data from file server");
+                        postMessage("Downloading validation files");
                         DnnIndex index = bundle.getIndexData();
                         String[] paths;
                         timer.start();
@@ -171,7 +173,7 @@ public class ClientLogic {
                             break;
                         }
                         timer.stop();
-                        postToLog("finished downloading validation data from github (" + timer + ")");
+                        postToLog("finished downloading validation data from file server (" + timer + ")");
                         postToLog("loading downloaded validation data to created DnnModel");
                         postMessage("Validating model no. " + mModel.getModelVersion());
                         mStats.setStartBatteryLevel(mPoster.getBatteryLevel());

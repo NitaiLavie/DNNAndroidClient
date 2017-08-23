@@ -50,7 +50,7 @@ public class DnnApplication extends Application {
             this.mLog = mLog.concat(logEntry);
             mLogSize++;
         } else {
-            this.mLog = (this.mLog.split("\n", 2))[1].concat(logEntry);
+            this.mLog = (this.mLog.split("\n", 3))[2].concat(logEntry);
         }
     }
 

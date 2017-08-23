@@ -6,6 +6,7 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -17,8 +18,14 @@ import java.nio.channels.ReadableByteChannel;
 public class DnnDataDownloader {
     private static final String TAG = "DnnDataDownloader";
 
-    private final String mBaseURL = "https://raw.githubusercontent.com/NitaiLavie/DnnDataSets/master/";
+    //private final String mBaseURL = "https://raw.githubusercontent.com/NitaiLavie/DnnDataSets/master/"; // on github
+    private final String mBaseURL = "https://s3.amazonaws.com/dnn-bucket/"; // on AWS s3
+    //mnist/train-images.idx3-ubyte.100/train-images.idx3-ubyte.100.01
     private final File mFilesDir;
+
+    private static final int mRequestLimit = 10;
+    private static final int mCooldownInterval = 1000; // in milliseconds
+
 
     public DnnDataDownloader(File filesDir){
         mFilesDir = filesDir;
@@ -45,13 +52,38 @@ public class DnnDataDownloader {
             }
 
             if(dataPath != null && !dataPath.exists()) {
-                FileUtils.copyURLToFile(dataURL, dataPath);
+                for(int i = 1; i<=mRequestLimit; i++){
+                    try {
+                        FileUtils.copyURLToFile(dataURL, dataPath);
+                        break;
+                    } catch (IOException e) {
+                        if(i<mRequestLimit) {
+                            Log.e(TAG, "download: Data download failed " + i + " times, Trying again...");
+                            //Thread.sleep(mCooldownInterval);
+                        } else {
+                            Log.e(TAG, "download: Data download failed " + i + " times, Stop trying.");
+                            throw e;
+                        }
+                    }
+                }
             } else {
                 Log.i(TAG, "download: file "+dataPath+" already exists. no need to download");
             }
 
             if(labelsPath != null && !labelsPath.exists()) {
-                FileUtils.copyURLToFile(labelsURL, labelsPath);
+                for(int i = 1; i<=mRequestLimit; i++) {
+                    try {
+                        FileUtils.copyURLToFile(labelsURL, labelsPath);
+                    } catch (IOException e) {
+                        if (i < mRequestLimit) {
+                            Log.e(TAG, "download: Labels download failed " + i + " times, Trying again...");
+                            //Thread.sleep(mCooldownInterval);
+                        } else {
+                            Log.e(TAG, "download: Labels download failed " + i + " times, Stop trying.");
+                            throw e;
+                        }
+                    }
+                }
             } else {
                 Log.i(TAG, "download: file "+labelsPath+" already exists. no need to download");
             }
@@ -61,6 +93,7 @@ public class DnnDataDownloader {
             e.printStackTrace();
             throw e;
         }
+
         if (dataSet.equals("mnist")){
             return new String[]{dataPath.getPath(), labelsPath.getPath()};
         } else if(dataSet.equals("cifar10")){

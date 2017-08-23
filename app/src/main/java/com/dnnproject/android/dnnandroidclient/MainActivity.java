@@ -58,12 +58,15 @@ public class MainActivity extends AppCompatActivity implements DnnServiceCallbac
     private boolean dnnServiceStarted = false;
     private boolean mServiceBound = false;
 
-    private DnnService mDnnService;
+    private DnnService mDnnService = null;
 
     private ServiceConnection mServiceConnection = new ServiceConnection() {
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
+            if(mDnnService != null) {
+                mDnnService.unsetCallbacks();
+            }
             mApp.setServiceBound(false);
         }
 
