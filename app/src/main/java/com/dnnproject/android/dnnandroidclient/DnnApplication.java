@@ -20,6 +20,8 @@ public class DnnApplication extends Application {
 
     private String mServiceMessage = "";
     private String mLog = "";
+    private int mLogSize = 0;
+    private final int mLogLimit = 50;
 
     public boolean isServerDisconnected() {
         return mServerDisconnected;
@@ -44,7 +46,12 @@ public class DnnApplication extends Application {
     public void logLog(String log) {
         String logEntry = ">>" + Calendar.getInstance().getTime() + ":" +
                 "\n" + log + "\n";
-        this.mLog = mLog.concat(logEntry);
+        if(mLogSize < mLogLimit) {
+            this.mLog = mLog.concat(logEntry);
+            mLogSize++;
+        } else {
+            this.mLog = (this.mLog.split("\n", 2))[1].concat(logEntry);
+        }
     }
 
     public boolean isDnnServiceStarted() {

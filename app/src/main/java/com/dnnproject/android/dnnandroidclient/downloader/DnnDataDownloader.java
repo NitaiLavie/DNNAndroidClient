@@ -71,8 +71,8 @@ public class DnnDataDownloader {
     }
 
     private String mnistDataURL(String dataSet, String dataType, Integer dataSize, Integer dataIndex){
-        return mBaseURL+dataSet+"/"+dataType+"-labels.idx1-ubyte."+dataSize+
-                "/"+dataType+"-labels.idx1-ubyte."+dataSize+"."+String.format("%02d",dataIndex);
+        return mBaseURL+dataSet+"/"+dataType+"-images.idx3-ubyte."+dataSize+
+                "/"+dataType+"-images.idx3-ubyte."+dataSize+"."+String.format("%02d",dataIndex);
     }
 
     private String mnistLabelsURL(String dataSet, String dataType, Integer dataSize, Integer dataIndex){

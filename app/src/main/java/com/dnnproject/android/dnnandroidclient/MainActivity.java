@@ -17,6 +17,7 @@ import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.view.View;
 import android.widget.Toast;
@@ -49,6 +50,7 @@ public class MainActivity extends AppCompatActivity implements DnnServiceCallbac
 
     private TextView serviceMessage;
     private TextView serviceLog;
+    private ScrollView serviceScroll;
 
     private TextView serviceText;
     private Button serviceButton;
@@ -98,6 +100,7 @@ public class MainActivity extends AppCompatActivity implements DnnServiceCallbac
         bigUsername = (TextView) findViewById(R.id.big_username);
 
         serviceMessage = (TextView) findViewById(R.id.service_message);
+        serviceScroll = (ScrollView) findViewById(R.id.service_scroll);
         serviceLog = (TextView) findViewById(R.id.service_log);
 
         serviceText = (TextView) findViewById(R.id.status_text);
@@ -123,11 +126,11 @@ public class MainActivity extends AppCompatActivity implements DnnServiceCallbac
                 if(item.isChecked()){
                     item.setChecked(false);
                     serviceMessage.setVisibility(View.VISIBLE);
-                    serviceLog.setVisibility(View.GONE);
+                    serviceScroll.setVisibility(View.GONE);
                 } else {
                     item.setChecked(true);
                     serviceMessage.setVisibility(View.GONE);
-                    serviceLog.setVisibility(View.VISIBLE);
+                    serviceScroll.setVisibility(View.VISIBLE);
                 }
                 return true;
 
